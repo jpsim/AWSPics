@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda function to login and sign CloudFront cookies
+
+Parameters:
+  websiteDomain:
+    Description: "Website domain"
+    Type: "String"
+  sessionDuration:
+    Description: "Number of seconds the user has access to the file"
+    Type: "String"
+  kmsKeyId:
+    Description: "ID of the KMS key used to encrypt other parameters"
+    Type: "String"
+    NoEcho: true
+  encryptedCloudFrontKeypairId:
+    Description: "CloudFront keypair ID encrypted with KMS"
+    Type: "String"
+    Default: ""
+    NoEcho: true
+  encryptedCloudFrontPrivateKey:
+    Description: "CloudFront private key encrypted with KMS"
+    Type: "String"
+    NoEcho: true
+  encryptedHtpasswd:
+    Description: "htpasswd file contents encrypted with KMS"
+    Type: "String"
+    NoEcho: true
+
+Resources:
+
+  #
+  # Lambda function definition
+  #
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs4.3
+      CodeUri: dist/lambda.zip
+      Role: !GetAtt LambdaRole.Arn
+      Environment:
+        Variables:
+          WEBSITE_DOMAIN: !Ref websiteDomain
+          SESSION_DURATION: !Ref sessionDuration
+          ENCRYPTED_CLOUDFRONT_KEYPAIR_ID: !Ref encryptedCloudFrontKeypairId
+          ENCRYPTED_CLOUDFRONT_PRIVATE_KEY: !Ref encryptedCloudFrontPrivateKey
+          ENCRYPTED_HTPASSWD: !Ref encryptedHtpasswd
+      Events:
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /login
+            Method: post
+
+  #
+  # IAM role so the Lambda can log (CloudWatch) and decrypt secrets (KMS)
+  #
+  LambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "AllowLambdaServiceToAssumeRole"
+            Effect: "Allow"
+            Action: [ "sts:AssumeRole" ]
+            Principal:
+              Service: [ "lambda.amazonaws.com" ]
+      Policies:
+        - PolicyName: KmsDecrypt
+          PolicyDocument:
+            Statement:
+              - Effect: "Allow"
+                Resource: !Sub
+                  - "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${id}"
+                  - id: !Ref kmsKeyId
+                Action: [ "kms:Decrypt" ]
