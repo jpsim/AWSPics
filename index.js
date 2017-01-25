@@ -142,7 +142,7 @@ function cookiesHeaders (config) {
   // extra options for all cookies we write
   // var date = new Date()
   // date.setTime(date + (config.cookieExpiryInSeconds * 1000))
-  const options = '; Domain=https://' + config.websiteDomain + '; Path=/; Secure; HttpOnly'
+  const options = '; Domain=' + config.websiteDomain + '; Path=/; Secure; HttpOnly'
   // we use a combination of lower/upper case
   // because we need to send multiple cookies
   // but the AWS API requires all headers in a single object!
