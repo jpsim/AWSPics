@@ -82,16 +82,32 @@ It should contain the following info - minus the comments:
 
 ```js
 [
+  // -------------------
+  // PLAIN TEXT SETTINGS
+  // -------------------
+
   // the website domain, as seen by the users
   "websiteDomain=website.com",
-  // how long the CloudFront cookies are valid for, in seconds
+  // how long the CloudFront access is granted for, in seconds
+  // note that the cookies are session cookies, and will get deleted when the browser is closed anyway
   "sessionDuration=86400",
+  // if false, a successful login will return HTTP 200 (typically for Ajax calls)
+  // if true, a successful login will return HTTP 302 to the Referer (typically for form submissions)
+  "redirectOnSuccess=true",
   // KMS key ID created in step 1
   "kmsKeyId=00000000-0000-0000-0000-000000000000",
   // CloudFront key pair ID from step 2
   // This is not sensitive, and will be one of the cookie values
   "cloudFrontKeypairId=APK...",
+
+  // ------------------
+  // ENCRYPTED SETTINGS
+  // ------------------
+
+  // encrypted CloudFront private key from step 2
   "encryptedCloudFrontPrivateKey=AQECAH...",
+
+  // encrypted contents of the <htpasswd> file from step 3
   "encryptedHtpasswd=AQECAH..."
 ]
 ```
@@ -103,7 +119,7 @@ export AWS_PROFILE="your-profile"
 export AWS_REGION="ap-southeast-2"
 
 # name of an S3 bucket for storing the Lambda code
-./deploy s3://my-lambda-storage
+./deploy my-bucket
 ```
 
 The output should end with the AWS API Gateway endpoint:
@@ -115,9 +131,16 @@ Endpoint URL: https://0000000000.execute-api.ap-southeast-2.amazonaws.com/Prod/l
 Take note of that URL, and test it out!
 
 ```bash
+# with a HTTP Form payload
+curl -X POST -d "username=hello&password=world" -H "Content-Type: x-www-form-encoded" -i "https://0000000000.execute-api.ap-southeast-2.amazonaws.com/Prod/login"
+
+# with a JSON payload
 curl -X POST -d "{\"username\":\"hello\", \"password\":\"world\"}" -H "Content-Type: application/json" -i "https://0000000000.execute-api.ap-southeast-2.amazonaws.com/Prod/login"
 ```
 
-You can optionally setup CloudFront in front of this URL so you can use a custom domain, like `https://website.com/login`.
-Once everything is working, change your CloudFront distribution to require signed cookies,
-and it will return `HTTP 403` for users who aren't logged in.
+Final steps:
+
+- optionally setup CloudFront in front of this URL too, so you can use a custom domain like `https://website.com/login`
+- once everything is working, change your CloudFront distribution to require signed cookies
+and it will return `HTTP 403` for users who aren't logged in
+- setup CloudFront to serve a nice login page for `403` errors, or use an existing page from your website to trigger the Lambda function

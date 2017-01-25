@@ -1,6 +1,7 @@
 [
   "websiteDomain=website.com",
   "sessionDuration=86400",
+  "redirectOnSuccess=false",
   "kmsKeyId=00000000-0000-0000-0000-000000000000",
   "cloudFrontKeypairId=APK...",
   "encryptedCloudFrontPrivateKey=AQECAH...",
