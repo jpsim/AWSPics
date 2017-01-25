@@ -2,7 +2,7 @@
   "websiteDomain=website.com",
   "sessionDuration=86400",
   "kmsKeyId=00000000-0000-0000-0000-000000000000",
-  "encryptedCloudFrontKeypairId=AQECAH...",
+  "cloudFrontKeypairId=APK...",
   "encryptedCloudFrontPrivateKey=AQECAH...",
   "encryptedHtpasswd=AQECAH..."
 ]

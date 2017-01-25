@@ -46,21 +46,15 @@ Browser                   CloudFront             Lambda              S3
 
 ### 2. CloudFront key pair
 
-- Logging in with your AWS **root** account, generate a CloudFront key pair.
-- Take note of the key pair ID, and encrypt it with
-
-```bash
-aws kms encrypt --key-id $KMS_KEY_ID --plaintext $KEYPAIR_ID --query CiphertextBlob --output text
-```
-
-- Download the private key
-- Encrypt the private key with KMS using
+- Logging in with your AWS **root** account, generate a CloudFront key pair
+- Take note of the key pair ID
+- Download the private key, and encrypt it with KMS using
 
 ```bash
 aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat pk-000000.pem)" --query CiphertextBlob --output text
 ```
 
-- When you're finished, secure the private key or delete it
+- Write down the encrypted value, then secure the private key or delete it
 
 ### 3. Htpasswd
 
@@ -94,8 +88,9 @@ It should contain the following info - minus the comments:
   "sessionDuration=86400",
   // KMS key ID created in step 1
   "kmsKeyId=00000000-0000-0000-0000-000000000000",
-  // encrypted settings from above
-  "encryptedCloudFrontKeypairId=AQECAH...",
+  // CloudFront key pair ID from step 2
+  // This is not sensitive, and will be one of the cookie values
+  "cloudFrontKeypairId=APK...",
   "encryptedCloudFrontPrivateKey=AQECAH...",
   "encryptedHtpasswd=AQECAH..."
 ]

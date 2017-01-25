@@ -13,7 +13,7 @@ Parameters:
     Description: "ID of the KMS key used to encrypt other parameters"
     Type: "String"
     NoEcho: true
-  encryptedCloudFrontKeypairId:
+  cloudFrontKeypairId:
     Description: "CloudFront keypair ID encrypted with KMS"
     Type: "String"
     Default: ""
@@ -43,7 +43,7 @@ Resources:
         Variables:
           WEBSITE_DOMAIN: !Ref websiteDomain
           SESSION_DURATION: !Ref sessionDuration
-          ENCRYPTED_CLOUDFRONT_KEYPAIR_ID: !Ref encryptedCloudFrontKeypairId
+          CLOUDFRONT_KEYPAIR_ID: !Ref cloudFrontKeypairId
           ENCRYPTED_CLOUDFRONT_PRIVATE_KEY: !Ref encryptedCloudFrontPrivateKey
           ENCRYPTED_HTPASSWD: !Ref encryptedHtpasswd
       Events:

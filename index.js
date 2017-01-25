@@ -11,7 +11,7 @@ const cloudfront = require('aws-cloudfront-sign')
 const CONFIG_KEYS = {
   websiteDomain: 'WEBSITE_DOMAIN',
   cookieExpiryInSeconds: 'SESSION_DURATION',
-  cloudFrontKeypairId: 'ENCRYPTED_CLOUDFRONT_KEYPAIR_ID',
+  cloudFrontKeypairId: 'CLOUDFRONT_KEYPAIR_ID',
   cloudFrontPrivateKey: 'ENCRYPTED_CLOUDFRONT_PRIVATE_KEY',
   htpasswd: 'ENCRYPTED_HTPASSWD'
 }
