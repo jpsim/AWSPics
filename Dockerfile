@@ -12,5 +12,5 @@ RUN npm install --production
 COPY index.js /build/index.js
 
 # zip entire context and stream output
-RUN zip -r /build/dist.zip .
+RUN zip -r /build/dist.zip . > /dev/null
 CMD ["cat", "/build/dist.zip"]
