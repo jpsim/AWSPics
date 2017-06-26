@@ -202,16 +202,27 @@ Resources:
     Properties:
       DistributionConfig:
         Origins:
-        - DomainName: protected.pictures2-resized.s3.amazonaws.com
-          Id: S3-protected.pictures2-resized
-          S3OriginConfig:
-            OriginAccessIdentity: !Sub
-            - "origin-access-identity/cloudfront/${id}"
-            - id: !Ref originAccessIdentity
+          - DomainName: protected.pictures2-resized.s3.amazonaws.com
+            Id: S3-protected.pictures2-resized
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub
+              - "origin-access-identity/cloudfront/${id}"
+              - id: !Ref originAccessIdentity
+          - DomainName: protected.pictures2-original.s3.amazonaws.com
+            Id: S3-protected.pictures2-original
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub
+              - "origin-access-identity/cloudfront/${id}"
+              - id: !Ref originAccessIdentity
         CacheBehaviors:
           - TargetOriginId: S3-protected.pictures2-resized
             ViewerProtocolPolicy: allow-all
             PathPattern: 'pics/resized/*'
+            ForwardedValues:
+              QueryString: 'false'
+          - TargetOriginId: S3-protected.pictures2-original
+            ViewerProtocolPolicy: allow-all
+            PathPattern: 'pics/original/*'
             ForwardedValues:
               QueryString: 'false'
         Enabled: 'true'
