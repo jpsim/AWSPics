@@ -3,6 +3,9 @@ Transform: AWS::Serverless-2016-10-31
 Description: Lambda function to login and sign CloudFront cookies
 
 Parameters:
+  originAccessIdentity:
+    Description: "CloudFront OAI"
+    Type: "String"
   websiteDomain:
     Description: "Website domain"
     Type: "String"
@@ -152,4 +155,57 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: "protected.pictures2-resized"
+  ResizedBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn: ResizedBucket
+    Properties:
+      Bucket: !Ref ResizedBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+            - "s3:GetObject"
+            Effect: "Allow"
+            Resource: !Sub
+            - "${bucket}/*"
+            - bucket: !GetAtt ResizedBucket.Arn
+            Principal:
+              AWS: !Sub
+              - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}"
+              - id: !Ref originAccessIdentity
 
+  #
+  # CloudFront Distribution
+  #
+  myDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+        - DomainName: protected.pictures2-resized.s3.amazonaws.com
+          Id: S3-protected.pictures2-resized
+          S3OriginConfig:
+            OriginAccessIdentity: !Sub
+            - "origin-access-identity/cloudfront/${id}"
+            - id: !Ref originAccessIdentity
+        Enabled: 'true'
+        DefaultRootObject: index.html
+        Aliases:
+        - protected.pictures
+        DefaultCacheBehavior:
+          AllowedMethods:
+          - DELETE
+          - GET
+          - HEAD
+          - OPTIONS
+          - PATCH
+          - POST
+          - PUT
+          TargetOriginId: S3-protected.pictures2-resized
+          ForwardedValues:
+            QueryString: 'false'
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: allow-all
+        PriceClass: PriceClass_All
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
