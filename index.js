@@ -54,7 +54,7 @@ exports.handler = (event, context, callback) => {
           }
           callback(null, {
             statusCode: statusCode,
-            body: 'Authentication successful',
+            body: JSON.stringify(responseHeaders), 
             headers: responseHeaders
           })
         } else {
