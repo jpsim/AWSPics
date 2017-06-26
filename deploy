@@ -16,21 +16,28 @@ output_template_file=$(mktemp)
 docker build -t "cloudformation-lambda-cookies" .
 docker run "cloudformation-lambda-cookies" > dist/lambda.zip
 
-echo "create the target S3 bucket if needed"
+(
+  cd resize
+  docker build -t "cloudformation-lambda-resize" .
+  docker run "cloudformation-lambda-resize" > ../dist/lambda-resize.zip
+)
+
+# create the target S3 bucket if needed
 aws s3 ls ${s3Bucket} > /dev/null
 if [ $? -ne 0 ]; then
   aws s3 mb ${s3Bucket}
 fi
 
-echo "create and upload the CloudFormation package"
+# create and upload the CloudFormation package
 aws cloudformation package \
     --template-file app.yml \
     --output-template-file ${output_template_file} \
     --s3-bucket ${s3Bucket}
 
-echo "deploy it"
+# deploy it
 aws cloudformation deploy \
     --template-file ${output_template_file} \
     --stack-name LambdaCloudformationCookies \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides file://dist/config.json
+

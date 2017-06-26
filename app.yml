@@ -33,7 +33,7 @@ Parameters:
 Resources:
 
   #
-  # Lambda function definition
+  # Login Lambda function definition
   #
   LoginFunction:
     Type: AWS::Serverless::Function
@@ -58,7 +58,7 @@ Resources:
             Method: post
 
   #
-  # IAM role so the Lambda can log (CloudWatch) and decrypt secrets (KMS)
+  # Login IAM role so the Lambda can log (CloudWatch) and decrypt secrets (KMS)
   #
   LambdaRole:
     Type: "AWS::IAM::Role"
@@ -83,3 +83,73 @@ Resources:
                   - "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${id}"
                   - id: !Ref kmsKeyId
                 Action: [ "kms:Decrypt" ]
+
+  #
+  # Resize Lambda function definition
+  #
+  ResizeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs6.10
+      CodeUri: dist/lambda-resize.zip
+      Role: !GetAtt ResizeLambdaRole.Arn
+      Timeout: 30
+      MemorySize: 1024
+
+  #
+  # Resize IAM role so the Lambda can log (CloudWatch) and read/write S3 objects
+  #
+  ResizeLambdaRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "AllowLambdaServiceToAssumeRole"
+            Effect: "Allow"
+            Action: [ "sts:AssumeRole" ]
+            Principal:
+              Service: [ "lambda.amazonaws.com" ]
+      Policies:
+        - PolicyName: ResizeLambdaGetOriginal
+          PolicyDocument:
+            Statement:
+              - Effect: "Allow"
+                Resource: "arn:aws:s3:::protected.pictures2-original/*"
+                Action: [ "s3:GetObject" ]
+        - PolicyName: ResizeLambdaPutResized
+          PolicyDocument:
+            Statement:
+              - Effect: "Allow"
+                Resource: "arn:aws:s3:::protected.pictures2-resized/*"
+                Action: [ "s3:PutObject" ]
+
+  #
+  # ResizeFunction Trigger
+  #
+  OriginalBucketPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref ResizeFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref "AWS::AccountId"
+      SourceArn: !Sub "arn:aws:s3:::protected.pictures2-original"
+  OriginalBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: OriginalBucketPermission
+    Properties:
+      BucketName: "protected.pictures2-original"
+      NotificationConfiguration:
+        LambdaConfigurations:
+        - Event: 's3:ObjectCreated:*'
+          Function: !GetAtt ResizeFunction.Arn
+  ResizedBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "protected.pictures2-resized"
+

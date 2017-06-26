@@ -1,0 +1,19 @@
+{
+  "name": "lambda-resize",
+  "version": "1.0.0",
+  "description": "AWS Lambda function that resizes images from one S3 bucket into another",
+  "author": "JP Simard",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard"
+  },
+  "dependencies": {
+    "async": "^2.1.4",
+    "gm": "^1.21.1"
+  },
+  "devDependencies": {
+    "standard": "^8.6.0"
+  }
+}
+
