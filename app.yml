@@ -195,6 +195,31 @@ Resources:
               - id: !Ref originAccessIdentity
 
   #
+  # Web Bucket
+  #
+  WebBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: "protected.pictures2"
+  WebBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn: WebBucket
+    Properties:
+      Bucket: !Ref WebBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+            - "s3:GetObject"
+            Effect: "Allow"
+            Resource: !Sub
+            - "${bucket}/*"
+            - bucket: !GetAtt WebBucket.Arn
+            Principal:
+              AWS: !Sub
+              - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}"
+              - id: !Ref originAccessIdentity
+
+  #
   # CloudFront Distribution
   #
   myDistribution:
@@ -210,6 +235,12 @@ Resources:
               - id: !Ref originAccessIdentity
           - DomainName: protected.pictures2-original.s3.amazonaws.com
             Id: S3-protected.pictures2-original
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub
+              - "origin-access-identity/cloudfront/${id}"
+              - id: !Ref originAccessIdentity
+          - DomainName: protected.pictures2.s3.amazonaws.com
+            Id: S3-protected.pictures2
             S3OriginConfig:
               OriginAccessIdentity: !Sub
               - "origin-access-identity/cloudfront/${id}"
@@ -230,7 +261,7 @@ Resources:
         Aliases:
         - protected.pictures
         DefaultCacheBehavior:
-          TargetOriginId: S3-protected.pictures2-resized
+          TargetOriginId: S3-protected.pictures2
           ForwardedValues:
             QueryString: 'false'
           ViewerProtocolPolicy: allow-all
