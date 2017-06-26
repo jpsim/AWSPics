@@ -256,6 +256,11 @@ Resources:
             PathPattern: 'pics/original/*'
             ForwardedValues:
               QueryString: 'false'
+          - TargetOriginId: S3-protected.pictures2
+            ViewerProtocolPolicy: allow-all
+            PathPattern: '*'
+            ForwardedValues:
+              QueryString: 'false'
         Enabled: 'true'
         DefaultRootObject: index.html
         Aliases:
