@@ -132,7 +132,7 @@ Resources:
                 Action: [ "s3:PutObject" ]
 
   #
-  # ResizeFunction Trigger
+  # Original Bucket
   #
   OriginalBucketPermission:
     Type: AWS::Lambda::Permission
@@ -151,6 +151,27 @@ Resources:
         LambdaConfigurations:
         - Event: 's3:ObjectCreated:*'
           Function: !GetAtt ResizeFunction.Arn
+  OriginalBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn: OriginalBucket
+    Properties:
+      Bucket: !Ref OriginalBucket
+      PolicyDocument:
+        Statement:
+          - Action:
+            - "s3:GetObject"
+            Effect: "Allow"
+            Resource: !Sub
+            - "${bucket}/*"
+            - bucket: !GetAtt OriginalBucket.Arn
+            Principal:
+              AWS: !Sub
+              - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}"
+              - id: !Ref originAccessIdentity
+
+  #
+  # Resized Bucket
+  #
   ResizedBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -187,24 +208,20 @@ Resources:
             OriginAccessIdentity: !Sub
             - "origin-access-identity/cloudfront/${id}"
             - id: !Ref originAccessIdentity
+        CacheBehaviors:
+          - TargetOriginId: S3-protected.pictures2-resized
+            ViewerProtocolPolicy: allow-all
+            PathPattern: 'pics/resized/*'
+            ForwardedValues:
+              QueryString: 'false'
         Enabled: 'true'
         DefaultRootObject: index.html
         Aliases:
         - protected.pictures
         DefaultCacheBehavior:
-          AllowedMethods:
-          - DELETE
-          - GET
-          - HEAD
-          - OPTIONS
-          - PATCH
-          - POST
-          - PUT
           TargetOriginId: S3-protected.pictures2-resized
           ForwardedValues:
             QueryString: 'false'
-            Cookies:
-              Forward: none
           ViewerProtocolPolicy: allow-all
         PriceClass: PriceClass_All
         ViewerCertificate:
