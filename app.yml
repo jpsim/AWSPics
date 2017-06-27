@@ -222,7 +222,7 @@ Resources:
   #
   # CloudFront Distribution
   #
-  myDistribution:
+  ProtectedPicturesDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
@@ -256,15 +256,8 @@ Resources:
             PathPattern: 'pics/original/*'
             ForwardedValues:
               QueryString: 'false'
-          - TargetOriginId: S3-protected.pictures2
-            ViewerProtocolPolicy: allow-all
-            PathPattern: '*'
-            ForwardedValues:
-              QueryString: 'false'
         Enabled: 'true'
         DefaultRootObject: index.html
-        Aliases:
-        - protected.pictures
         DefaultCacheBehavior:
           TargetOriginId: S3-protected.pictures2
           ForwardedValues:
