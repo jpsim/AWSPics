@@ -267,18 +267,23 @@ Resources:
               OriginAccessIdentity: !Sub
               - "origin-access-identity/cloudfront/${id}"
               - id: !Ref originAccessIdentity
+          - DomainName: mmltm9y8sf.execute-api.us-east-2.amazonaws.com
+            Id: Custom-mmltm9y8sf.execute-api.us-east-2.amazonaws.com/Prod
+            OriginPath: /prod
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
         CacheBehaviors:
           - TargetOriginId: !Sub
             - "S3-${websiteDomain}-resized"
             - websiteDomain: !Ref websiteDomain
-            ViewerProtocolPolicy: allow-all
+            ViewerProtocolPolicy: https-only
             PathPattern: 'pics/resized/*'
             ForwardedValues:
               QueryString: 'false'
           - TargetOriginId: !Sub
             - "S3-${websiteDomain}-original"
             - websiteDomain: !Ref websiteDomain
-            ViewerProtocolPolicy: allow-all
+            ViewerProtocolPolicy: https-only
             PathPattern: 'pics/original/*'
             ForwardedValues:
               QueryString: 'false'
@@ -290,7 +295,7 @@ Resources:
             - websiteDomain: !Ref websiteDomain
           ForwardedValues:
             QueryString: 'false'
-          ViewerProtocolPolicy: allow-all
+          ViewerProtocolPolicy: http-to-https
         PriceClass: PriceClass_All
         ViewerCertificate:
           CloudFrontDefaultCertificate: 'true'
