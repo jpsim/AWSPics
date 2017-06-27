@@ -190,8 +190,9 @@ Resources:
   #
   # Original Bucket
   #
-  OriginalBucketPermission:
+  ResizeInvokePermission:
     Type: AWS::Lambda::Permission
+    DependsOn: SiteBuilderInvokePermission
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref ResizeFunction
@@ -202,7 +203,7 @@ Resources:
         - websiteDomain: !Ref websiteDomain
   OriginalBucket:
     Type: AWS::S3::Bucket
-    DependsOn: OriginalBucketPermission
+    DependsOn: ResizeInvokePermission
     Properties:
       BucketName: !Sub
         - ${websiteDomain}-original
@@ -211,8 +212,6 @@ Resources:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
             Function: !GetAtt ResizeFunction.Arn
-          - Event: 's3:ObjectCreated:*'
-            Function: !GetAtt SiteBuilderFunction.Arn
   OriginalBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: OriginalBucket
@@ -234,12 +233,26 @@ Resources:
   #
   # Resized Bucket
   #
+  SiteBuilderInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SiteBuilderFunction
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref AWS::AccountId
+      SourceArn: !Sub
+        - arn:aws:s3:::${websiteDomain}-resized
+        - websiteDomain: !Ref websiteDomain
   ResizedBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub
         - ${websiteDomain}-resized
         - websiteDomain: !Ref websiteDomain
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt SiteBuilderFunction.Arn
   ResizedBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: ResizedBucket
