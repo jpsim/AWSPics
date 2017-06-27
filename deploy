@@ -37,7 +37,7 @@ aws cloudformation package \
 # deploy it
 aws cloudformation deploy \
     --template-file ${output_template_file} \
-    --stack-name LambdaCloudformationCookies \
+    --stack-name ProtectedPictures \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides file://dist/config.json
 
