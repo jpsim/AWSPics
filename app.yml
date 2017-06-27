@@ -269,15 +269,15 @@ Resources:
               - id: !Ref originAccessIdentity
         CacheBehaviors:
           - TargetOriginId: !Sub
-          - "S3-${websiteDomain}-resized"
-          - websiteDomain: !Ref websiteDomain
+            - "S3-${websiteDomain}-resized"
+            - websiteDomain: !Ref websiteDomain
             ViewerProtocolPolicy: allow-all
             PathPattern: 'pics/resized/*'
             ForwardedValues:
               QueryString: 'false'
           - TargetOriginId: !Sub
-          - "S3-${websiteDomain}-original"
-          - websiteDomain: !Ref websiteDomain
+            - "S3-${websiteDomain}-original"
+            - websiteDomain: !Ref websiteDomain
             ViewerProtocolPolicy: allow-all
             PathPattern: 'pics/original/*'
             ForwardedValues:
@@ -286,8 +286,8 @@ Resources:
         DefaultRootObject: index.html
         DefaultCacheBehavior:
           TargetOriginId: !Sub
-          - "S3-${websiteDomain}"
-          - websiteDomain: !Ref websiteDomain
+            - "S3-${websiteDomain}"
+            - websiteDomain: !Ref websiteDomain
           ForwardedValues:
             QueryString: 'false'
           ViewerProtocolPolicy: allow-all
