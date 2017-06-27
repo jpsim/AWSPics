@@ -40,4 +40,3 @@ aws cloudformation deploy \
     --stack-name ProtectedPictures \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides file://dist/config.json
-
