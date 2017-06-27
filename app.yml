@@ -122,13 +122,13 @@ Resources:
           PolicyDocument:
             Statement:
               - Effect: "Allow"
-                Resource: "arn:aws:s3:::protected.pictures2-original/*"
+                Resource: "arn:aws:s3:::protected.pictures3-original/*"
                 Action: [ "s3:GetObject" ]
         - PolicyName: ResizeLambdaPutResized
           PolicyDocument:
             Statement:
               - Effect: "Allow"
-                Resource: "arn:aws:s3:::protected.pictures2-resized/*"
+                Resource: "arn:aws:s3:::protected.pictures3-resized/*"
                 Action: [ "s3:PutObject" ]
 
   #
@@ -141,12 +141,12 @@ Resources:
       FunctionName: !Ref ResizeFunction
       Principal: s3.amazonaws.com
       SourceAccount: !Ref "AWS::AccountId"
-      SourceArn: !Sub "arn:aws:s3:::protected.pictures2-original"
+      SourceArn: !Sub "arn:aws:s3:::protected.pictures3-original"
   OriginalBucket:
     Type: AWS::S3::Bucket
     DependsOn: OriginalBucketPermission
     Properties:
-      BucketName: "protected.pictures2-original"
+      BucketName: "protected.pictures3-original"
       NotificationConfiguration:
         LambdaConfigurations:
         - Event: 's3:ObjectCreated:*'
@@ -175,7 +175,7 @@ Resources:
   ResizedBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "protected.pictures2-resized"
+      BucketName: "protected.pictures3-resized"
   ResizedBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: ResizedBucket
@@ -200,7 +200,7 @@ Resources:
   WebBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "protected.pictures2"
+      BucketName: "protected.pictures3"
   WebBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: WebBucket
@@ -227,31 +227,31 @@ Resources:
     Properties:
       DistributionConfig:
         Origins:
-          - DomainName: protected.pictures2-resized.s3.amazonaws.com
-            Id: S3-protected.pictures2-resized
+          - DomainName: protected.pictures3-resized.s3.amazonaws.com
+            Id: S3-protected.pictures3-resized
             S3OriginConfig:
               OriginAccessIdentity: !Sub
               - "origin-access-identity/cloudfront/${id}"
               - id: !Ref originAccessIdentity
-          - DomainName: protected.pictures2-original.s3.amazonaws.com
-            Id: S3-protected.pictures2-original
+          - DomainName: protected.pictures3-original.s3.amazonaws.com
+            Id: S3-protected.pictures3-original
             S3OriginConfig:
               OriginAccessIdentity: !Sub
               - "origin-access-identity/cloudfront/${id}"
               - id: !Ref originAccessIdentity
-          - DomainName: protected.pictures2.s3.amazonaws.com
-            Id: S3-protected.pictures2
+          - DomainName: protected.pictures3.s3.amazonaws.com
+            Id: S3-protected.pictures3
             S3OriginConfig:
               OriginAccessIdentity: !Sub
               - "origin-access-identity/cloudfront/${id}"
               - id: !Ref originAccessIdentity
         CacheBehaviors:
-          - TargetOriginId: S3-protected.pictures2-resized
+          - TargetOriginId: S3-protected.pictures3-resized
             ViewerProtocolPolicy: allow-all
             PathPattern: 'pics/resized/*'
             ForwardedValues:
               QueryString: 'false'
-          - TargetOriginId: S3-protected.pictures2-original
+          - TargetOriginId: S3-protected.pictures3-original
             ViewerProtocolPolicy: allow-all
             PathPattern: 'pics/original/*'
             ForwardedValues:
@@ -259,7 +259,7 @@ Resources:
         Enabled: 'true'
         DefaultRootObject: index.html
         DefaultCacheBehavior:
-          TargetOriginId: S3-protected.pictures2
+          TargetOriginId: S3-protected.pictures3
           ForwardedValues:
             QueryString: 'false'
           ViewerProtocolPolicy: allow-all
