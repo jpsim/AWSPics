@@ -3,6 +3,9 @@ Transform: AWS::Serverless-2016-10-31
 Description: AWS stack to run a serverless password-protected photo gallery
 
 Parameters:
+  loginAPIDomain:
+    Description: "Login API Domain"
+    Type: "String"
   originAccessIdentity:
     Description: "CloudFront OAI"
     Type: "String"
@@ -267,8 +270,10 @@ Resources:
               OriginAccessIdentity: !Sub
               - "origin-access-identity/cloudfront/${id}"
               - id: !Ref originAccessIdentity
-          - DomainName: mmltm9y8sf.execute-api.us-east-2.amazonaws.com
-            Id: Custom-mmltm9y8sf.execute-api.us-east-2.amazonaws.com
+          - DomainName: !Ref loginAPIDomain
+            Id: !Sub
+            - "Custom-${loginAPIDomain}"
+            - loginAPIDomain: !Ref loginAPIDomain
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
         CacheBehaviors:
@@ -286,7 +291,9 @@ Resources:
             PathPattern: 'pics/original/*'
             ForwardedValues:
               QueryString: 'false'
-          - TargetOriginId: Custom-mmltm9y8sf.execute-api.us-east-2.amazonaws.com
+          - TargetOriginId: !Sub
+            - "Custom-${loginAPIDomain}"
+            - loginAPIDomain: !Ref loginAPIDomain
             ViewerProtocolPolicy: https-only
             PathPattern: 'Prod/*'
             AllowedMethods:
