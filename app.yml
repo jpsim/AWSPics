@@ -288,7 +288,7 @@ Resources:
               QueryString: 'false'
           - TargetOriginId: Custom-mmltm9y8sf.execute-api.us-east-2.amazonaws.com
             ViewerProtocolPolicy: https-only
-            PathPattern: 'prod/*'
+            PathPattern: 'Prod/*'
             AllowedMethods:
             - HEAD
             - DELETE
