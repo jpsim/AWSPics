@@ -290,8 +290,13 @@ Resources:
             ViewerProtocolPolicy: https-only
             PathPattern: 'prod/*'
             AllowedMethods:
-            - OPTIONS
+            - HEAD
+            - DELETE
             - POST
+            - GET
+            - OPTIONS
+            - PUT
+            - PATCH
             ForwardedValues:
               QueryString: 'false'
               Headers:
