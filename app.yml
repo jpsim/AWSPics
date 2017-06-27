@@ -1,39 +1,40 @@
+---
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: AWS stack to run a serverless password-protected photo gallery
 
 Parameters:
   loginAPIDomain:
-    Description: "Login API Domain"
-    Type: "String"
+    Description: Login API Domain
+    Type: String
   originAccessIdentity:
-    Description: "CloudFront OAI"
-    Type: "String"
+    Description: CloudFront OAI
+    Type: String
   websiteDomain:
-    Description: "Website domain"
-    Type: "String"
+    Description: Website domain
+    Type: String
   sessionDuration:
-    Description: "Number of seconds the user has access to the file"
-    Type: "Number"
+    Description: Number of seconds the user has access to the file
+    Type: Number
   redirectOnSuccess:
-    Description: "Whether to send a HTTP 200 or 302 on successful login (boolean)"
-    Type: "String"
+    Description: Whether to send a HTTP 200 or 302 on successful login (boolean)
+    Type: String
   kmsKeyId:
-    Description: "ID of the KMS key used to encrypt other parameters"
-    Type: "String"
+    Description: ID of the KMS key used to encrypt other parameters
+    Type: String
     NoEcho: true
   cloudFrontKeypairId:
-    Description: "CloudFront keypair ID encrypted with KMS"
-    Type: "String"
-    Default: ""
+    Description: CloudFront keypair ID encrypted with KMS
+    Type: String
+    Default: ''
     NoEcho: true
   encryptedCloudFrontPrivateKey:
-    Description: "CloudFront private key encrypted with KMS"
-    Type: "String"
+    Description: CloudFront private key encrypted with KMS
+    Type: String
     NoEcho: true
   encryptedHtpasswd:
-    Description: "htpasswd file contents encrypted with KMS"
-    Type: "String"
+    Description: htpasswd file contents encrypted with KMS
+    Type: String
     NoEcho: true
 
 Resources:
@@ -67,28 +68,28 @@ Resources:
   # Login IAM role so the Lambda can log (CloudWatch) and decrypt secrets (KMS)
   #
   LambdaRole:
-    Type: "AWS::IAM::Role"
+    Type: AWS::IAM::Role
     Properties:
-      Path: "/"
+      Path: /
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          - Sid: "AllowLambdaServiceToAssumeRole"
-            Effect: "Allow"
-            Action: [ "sts:AssumeRole" ]
+          - Sid: AllowLambdaServiceToAssumeRole
+            Effect: Allow
+            Action: ['sts:AssumeRole']
             Principal:
-              Service: [ "lambda.amazonaws.com" ]
+              Service: [lambda.amazonaws.com]
       Policies:
         - PolicyName: KmsDecrypt
           PolicyDocument:
             Statement:
-              - Effect: "Allow"
+              - Effect: Allow
                 Resource: !Sub
-                  - "arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${id}"
+                  - arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/${id}
                   - id: !Ref kmsKeyId
-                Action: [ "kms:Decrypt" ]
+                Action: ['kms:Decrypt']
 
   #
   # Resize Lambda function definition
@@ -107,36 +108,36 @@ Resources:
   # Resize IAM role so the Lambda can log (CloudWatch) and read/write S3 objects
   #
   ResizeLambdaRole:
-    Type: "AWS::IAM::Role"
+    Type: AWS::IAM::Role
     Properties:
-      Path: "/"
+      Path: /
       ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          - Sid: "AllowLambdaServiceToAssumeRole"
-            Effect: "Allow"
-            Action: [ "sts:AssumeRole" ]
+          - Sid: AllowLambdaServiceToAssumeRole
+            Effect: Allow
+            Action: ['sts:AssumeRole']
             Principal:
-              Service: [ "lambda.amazonaws.com" ]
+              Service: [lambda.amazonaws.com]
       Policies:
         - PolicyName: ResizeLambdaGetOriginal
           PolicyDocument:
             Statement:
-              - Effect: "Allow"
+              - Effect: Allow
                 Resource: !Sub
-                - "arn:aws:s3:::${websiteDomain}-original/*"
-                - websiteDomain: !Ref websiteDomain
-                Action: [ "s3:GetObject" ]
+                  - 'arn:aws:s3:::${websiteDomain}-original/*'
+                  - websiteDomain: !Ref websiteDomain
+                Action: ['s3:GetObject']
         - PolicyName: ResizeLambdaPutResized
           PolicyDocument:
             Statement:
-              - Effect: "Allow"
+              - Effect: Allow
                 Resource: !Sub
-                - "arn:aws:s3:::${websiteDomain}-resized/*"
-                - websiteDomain: !Ref websiteDomain
-                Action: [ "s3:PutObject" ]
+                  - 'arn:aws:s3:::${websiteDomain}-resized/*'
+                  - websiteDomain: !Ref websiteDomain
+                Action: ['s3:PutObject']
 
   #
   # Original Bucket
@@ -144,24 +145,24 @@ Resources:
   OriginalBucketPermission:
     Type: AWS::Lambda::Permission
     Properties:
-      Action: 'lambda:InvokeFunction'
+      Action: lambda:InvokeFunction
       FunctionName: !Ref ResizeFunction
       Principal: s3.amazonaws.com
-      SourceAccount: !Ref "AWS::AccountId"
+      SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub
-      - "arn:aws:s3:::${websiteDomain}-original"
-      - websiteDomain: !Ref websiteDomain
+        - arn:aws:s3:::${websiteDomain}-original
+        - websiteDomain: !Ref websiteDomain
   OriginalBucket:
     Type: AWS::S3::Bucket
     DependsOn: OriginalBucketPermission
     Properties:
       BucketName: !Sub
-      - "${websiteDomain}-original"
-      - websiteDomain: !Ref websiteDomain
+        - ${websiteDomain}-original
+        - websiteDomain: !Ref websiteDomain
       NotificationConfiguration:
         LambdaConfigurations:
-        - Event: 's3:ObjectCreated:*'
-          Function: !GetAtt ResizeFunction.Arn
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt ResizeFunction.Arn
   OriginalBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: OriginalBucket
@@ -170,15 +171,15 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
-            - "s3:GetObject"
-            Effect: "Allow"
+              - s3:GetObject
+            Effect: Allow
             Resource: !Sub
-            - "${bucket}/*"
-            - bucket: !GetAtt OriginalBucket.Arn
+              - '${bucket}/*'
+              - bucket: !GetAtt OriginalBucket.Arn
             Principal:
               AWS: !Sub
-              - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}"
-              - id: !Ref originAccessIdentity
+                - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}
+                - id: !Ref originAccessIdentity
 
   #
   # Resized Bucket
@@ -187,8 +188,8 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Sub
-      - "${websiteDomain}-resized"
-      - websiteDomain: !Ref websiteDomain
+        - ${websiteDomain}-resized
+        - websiteDomain: !Ref websiteDomain
   ResizedBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: ResizedBucket
@@ -197,15 +198,15 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
-            - "s3:GetObject"
-            Effect: "Allow"
+              - s3:GetObject
+            Effect: Allow
             Resource: !Sub
-            - "${bucket}/*"
-            - bucket: !GetAtt ResizedBucket.Arn
+              - '${bucket}/*'
+              - bucket: !GetAtt ResizedBucket.Arn
             Principal:
               AWS: !Sub
-              - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}"
-              - id: !Ref originAccessIdentity
+                - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}
+                - id: !Ref originAccessIdentity
 
   #
   # Web Bucket
@@ -222,15 +223,15 @@ Resources:
       PolicyDocument:
         Statement:
           - Action:
-            - "s3:GetObject"
-            Effect: "Allow"
+              - s3:GetObject
+            Effect: Allow
             Resource: !Sub
-            - "${bucket}/*"
-            - bucket: !GetAtt WebBucket.Arn
+              - '${bucket}/*'
+              - bucket: !GetAtt WebBucket.Arn
             Principal:
               AWS: !Sub
-              - "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}"
-              - id: !Ref originAccessIdentity
+                - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}
+                - id: !Ref originAccessIdentity
 
   #
   # CloudFront Distribution
@@ -241,81 +242,81 @@ Resources:
       DistributionConfig:
         Origins:
           - DomainName: !Sub
-            - "${websiteDomain}-resized.s3.amazonaws.com"
-            - websiteDomain: !Ref websiteDomain
+              - ${websiteDomain}-resized.s3.amazonaws.com
+              - websiteDomain: !Ref websiteDomain
             Id: !Sub
-            - "S3-${websiteDomain}-resized"
-            - websiteDomain: !Ref websiteDomain
+              - S3-${websiteDomain}-resized
+              - websiteDomain: !Ref websiteDomain
             S3OriginConfig:
               OriginAccessIdentity: !Sub
-              - "origin-access-identity/cloudfront/${id}"
-              - id: !Ref originAccessIdentity
+                - origin-access-identity/cloudfront/${id}
+                - id: !Ref originAccessIdentity
           - DomainName: !Sub
-            - "${websiteDomain}-original.s3.amazonaws.com"
-            - websiteDomain: !Ref websiteDomain
+              - ${websiteDomain}-original.s3.amazonaws.com
+              - websiteDomain: !Ref websiteDomain
             Id: !Sub
-            - "S3-${websiteDomain}-original"
-            - websiteDomain: !Ref websiteDomain
+              - S3-${websiteDomain}-original
+              - websiteDomain: !Ref websiteDomain
             S3OriginConfig:
               OriginAccessIdentity: !Sub
-              - "origin-access-identity/cloudfront/${id}"
-              - id: !Ref originAccessIdentity
+                - origin-access-identity/cloudfront/${id}
+                - id: !Ref originAccessIdentity
           - DomainName: !Sub
-            - "${websiteDomain}.s3.amazonaws.com"
-            - websiteDomain: !Ref websiteDomain
+              - ${websiteDomain}.s3.amazonaws.com
+              - websiteDomain: !Ref websiteDomain
             Id: !Sub
-            - "S3-${websiteDomain}"
-            - websiteDomain: !Ref websiteDomain
+              - S3-${websiteDomain}
+              - websiteDomain: !Ref websiteDomain
             S3OriginConfig:
               OriginAccessIdentity: !Sub
-              - "origin-access-identity/cloudfront/${id}"
-              - id: !Ref originAccessIdentity
+                - origin-access-identity/cloudfront/${id}
+                - id: !Ref originAccessIdentity
           - DomainName: !Ref loginAPIDomain
             Id: !Sub
-            - "Custom-${loginAPIDomain}"
-            - loginAPIDomain: !Ref loginAPIDomain
+              - Custom-${loginAPIDomain}
+              - loginAPIDomain: !Ref loginAPIDomain
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
         CacheBehaviors:
           - TargetOriginId: !Sub
-            - "S3-${websiteDomain}-resized"
-            - websiteDomain: !Ref websiteDomain
+              - S3-${websiteDomain}-resized
+              - websiteDomain: !Ref websiteDomain
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/resized/*'
             ForwardedValues:
               QueryString: 'false'
           - TargetOriginId: !Sub
-            - "S3-${websiteDomain}-original"
-            - websiteDomain: !Ref websiteDomain
+              - S3-${websiteDomain}-original
+              - websiteDomain: !Ref websiteDomain
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/original/*'
             ForwardedValues:
               QueryString: 'false'
           - TargetOriginId: !Sub
-            - "Custom-${loginAPIDomain}"
-            - loginAPIDomain: !Ref loginAPIDomain
+              - Custom-${loginAPIDomain}
+              - loginAPIDomain: !Ref loginAPIDomain
             ViewerProtocolPolicy: https-only
             PathPattern: 'Prod/*'
             AllowedMethods:
-            - HEAD
-            - DELETE
-            - POST
-            - GET
-            - OPTIONS
-            - PUT
-            - PATCH
+              - HEAD
+              - DELETE
+              - POST
+              - GET
+              - OPTIONS
+              - PUT
+              - PATCH
             ForwardedValues:
               QueryString: 'false'
               Headers:
-              - Accept
-              - Authorization
-              - Content-Type
-              - Referer
+                - Accept
+                - Authorization
+                - Content-Type
+                - Referer
         Enabled: 'true'
         DefaultRootObject: index.html
         DefaultCacheBehavior:
           TargetOriginId: !Sub
-            - "S3-${websiteDomain}"
+            - S3-${websiteDomain}
             - websiteDomain: !Ref websiteDomain
           ForwardedValues:
             QueryString: 'false'
