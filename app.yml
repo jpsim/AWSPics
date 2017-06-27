@@ -140,6 +140,54 @@ Resources:
                 Action: ['s3:PutObject']
 
   #
+  # Site Builder Lambda function definition
+  #
+  SiteBuilderFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs6.10
+      CodeUri: dist/lambda-site-builder.zip
+      Role: !GetAtt SiteBuilderLambdaRole.Arn
+      Timeout: 30
+      MemorySize: 1024
+
+  #
+  # Site Builder IAM role so the Lambda can log (CloudWatch) and read/write S3 objects
+  #
+  SiteBuilderLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowLambdaServiceToAssumeRole
+            Effect: Allow
+            Action: ['sts:AssumeRole']
+            Principal:
+              Service: [lambda.amazonaws.com]
+      Policies:
+        - PolicyName: SiteBuilderLambdaGetOriginal
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Resource: !Sub
+                  - 'arn:aws:s3:::${websiteDomain}-original/*'
+                  - websiteDomain: !Ref websiteDomain
+                Action: ['s3:GetObject']
+        - PolicyName: SiteBuilderLambdaPutSite
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Resource: !Sub
+                  - 'arn:aws:s3:::${websiteDomain}/*'
+                  - websiteDomain: !Ref websiteDomain
+                Action: ['s3:PutObject']
+
+  #
   # Original Bucket
   #
   OriginalBucketPermission:
@@ -163,6 +211,8 @@ Resources:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
             Function: !GetAtt ResizeFunction.Arn
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt SiteBuilderFunction.Arn
   OriginalBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: OriginalBucket
