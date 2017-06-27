@@ -268,8 +268,7 @@ Resources:
               - "origin-access-identity/cloudfront/${id}"
               - id: !Ref originAccessIdentity
           - DomainName: mmltm9y8sf.execute-api.us-east-2.amazonaws.com
-            Id: Custom-mmltm9y8sf.execute-api.us-east-2.amazonaws.com/Prod
-            OriginPath: /prod
+            Id: Custom-mmltm9y8sf.execute-api.us-east-2.amazonaws.com
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
         CacheBehaviors:
@@ -287,6 +286,19 @@ Resources:
             PathPattern: 'pics/original/*'
             ForwardedValues:
               QueryString: 'false'
+          - TargetOriginId: Custom-mmltm9y8sf.execute-api.us-east-2.amazonaws.com
+            ViewerProtocolPolicy: https-only
+            PathPattern: 'prod/*'
+            AllowedMethods:
+            - OPTIONS
+            - POST
+            ForwardedValues:
+              QueryString: 'false'
+              Headers:
+              - Accept
+              - Authorization
+              - Content-Type
+              - Referer
         Enabled: 'true'
         DefaultRootObject: index.html
         DefaultCacheBehavior:
