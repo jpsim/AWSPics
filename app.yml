@@ -122,13 +122,17 @@ Resources:
           PolicyDocument:
             Statement:
               - Effect: "Allow"
-                Resource: "arn:aws:s3:::protected.pictures4-original/*"
+                Resource: !Sub
+                - "arn:aws:s3:::${websiteDomain}-original/*"
+                - websiteDomain: !Ref websiteDomain
                 Action: [ "s3:GetObject" ]
         - PolicyName: ResizeLambdaPutResized
           PolicyDocument:
             Statement:
               - Effect: "Allow"
-                Resource: "arn:aws:s3:::protected.pictures4-resized/*"
+                Resource: !Sub
+                - "arn:aws:s3:::${websiteDomain}-resized/*"
+                - websiteDomain: !Ref websiteDomain
                 Action: [ "s3:PutObject" ]
 
   #
@@ -141,12 +145,16 @@ Resources:
       FunctionName: !Ref ResizeFunction
       Principal: s3.amazonaws.com
       SourceAccount: !Ref "AWS::AccountId"
-      SourceArn: !Sub "arn:aws:s3:::protected.pictures4-original"
+      SourceArn: !Sub
+      - "arn:aws:s3:::${websiteDomain}-original"
+      - websiteDomain: !Ref websiteDomain
   OriginalBucket:
     Type: AWS::S3::Bucket
     DependsOn: OriginalBucketPermission
     Properties:
-      BucketName: "protected.pictures4-original"
+      BucketName: !Sub
+      - "${websiteDomain}-original"
+      - websiteDomain: !Ref websiteDomain
       NotificationConfiguration:
         LambdaConfigurations:
         - Event: 's3:ObjectCreated:*'
@@ -175,7 +183,9 @@ Resources:
   ResizedBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "protected.pictures4-resized"
+      BucketName: !Sub
+      - "${websiteDomain}-resized"
+      - websiteDomain: !Ref websiteDomain
   ResizedBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: ResizedBucket
@@ -200,7 +210,7 @@ Resources:
   WebBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: "protected.pictures4"
+      BucketName: !Ref websiteDomain
   WebBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: WebBucket
@@ -227,31 +237,47 @@ Resources:
     Properties:
       DistributionConfig:
         Origins:
-          - DomainName: protected.pictures4-resized.s3.amazonaws.com
-            Id: S3-protected.pictures4-resized
+          - DomainName: !Sub
+            - "${websiteDomain}-resized.s3.amazonaws.com"
+            - websiteDomain: !Ref websiteDomain
+            Id: !Sub
+            - "S3-${websiteDomain}-resized"
+            - websiteDomain: !Ref websiteDomain
             S3OriginConfig:
               OriginAccessIdentity: !Sub
               - "origin-access-identity/cloudfront/${id}"
               - id: !Ref originAccessIdentity
-          - DomainName: protected.pictures4-original.s3.amazonaws.com
-            Id: S3-protected.pictures4-original
+          - DomainName: !Sub
+            - "${websiteDomain}-original.s3.amazonaws.com"
+            - websiteDomain: !Ref websiteDomain
+            Id: !Sub
+            - "S3-${websiteDomain}-original"
+            - websiteDomain: !Ref websiteDomain
             S3OriginConfig:
               OriginAccessIdentity: !Sub
               - "origin-access-identity/cloudfront/${id}"
               - id: !Ref originAccessIdentity
-          - DomainName: protected.pictures4.s3.amazonaws.com
-            Id: S3-protected.pictures4
+          - DomainName: !Sub
+            - "${websiteDomain}.s3.amazonaws.com"
+            - websiteDomain: !Ref websiteDomain
+            Id: !Sub
+            - "S3-${websiteDomain}"
+            - websiteDomain: !Ref websiteDomain
             S3OriginConfig:
               OriginAccessIdentity: !Sub
               - "origin-access-identity/cloudfront/${id}"
               - id: !Ref originAccessIdentity
         CacheBehaviors:
-          - TargetOriginId: S3-protected.pictures4-resized
+          - TargetOriginId: !Sub
+          - "S3-${websiteDomain}-resized"
+          - websiteDomain: !Ref websiteDomain
             ViewerProtocolPolicy: allow-all
             PathPattern: 'pics/resized/*'
             ForwardedValues:
               QueryString: 'false'
-          - TargetOriginId: S3-protected.pictures4-original
+          - TargetOriginId: !Sub
+          - "S3-${websiteDomain}-original"
+          - websiteDomain: !Ref websiteDomain
             ViewerProtocolPolicy: allow-all
             PathPattern: 'pics/original/*'
             ForwardedValues:
@@ -259,7 +285,9 @@ Resources:
         Enabled: 'true'
         DefaultRootObject: index.html
         DefaultCacheBehavior:
-          TargetOriginId: S3-protected.pictures4
+          TargetOriginId: !Sub
+          - "S3-${websiteDomain}"
+          - websiteDomain: !Ref websiteDomain
           ForwardedValues:
             QueryString: 'false'
           ViewerProtocolPolicy: allow-all
