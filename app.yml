@@ -307,7 +307,7 @@ Resources:
             - websiteDomain: !Ref websiteDomain
           ForwardedValues:
             QueryString: 'false'
-          ViewerProtocolPolicy: http-to-https
+          ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_All
         ViewerCertificate:
           CloudFrontDefaultCertificate: 'true'
