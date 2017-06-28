@@ -108,11 +108,20 @@ function uploadAlbumSite(title, pictures, metadata) {
       if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
         return;
       } else if (path.basename(f) == 'index.html') {
-        var renderedTitle = title;
-        if (metadata && metadata.title) {
-          renderedTitle = metadata.title;
+        // Defaults
+        var renderedTitle = title,
+            comment1 = '';
+            comment2 = '';
+
+        // Metadata
+        if (metadata) {
+          if (metadata.title) renderedTitle = metadata.title;
+          if (metadata.comment1) comment1 = metadata.comment1;
+          if (metadata.comment2) comment2 = metadata.comment2;
         }
-        body = body.toString().replace(/\{title\}/g, renderedTitle);
+        body = body.toString().replace(/\{title\}/g, renderedTitle)
+                              .replace(/\{comment1\}/g, comment1)
+                              .replace(/\{comment2\}/g, comment2);
       }
 
       var options = {
