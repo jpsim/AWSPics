@@ -194,6 +194,12 @@ Resources:
                   - 'arn:aws:s3:::${websiteDomain}/*'
                   - websiteDomain: !Ref websiteDomain
                 Action: ['s3:PutObject']
+        - PolicyName: SiteBuilderLambdaInvalidateDistribution
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Resource: '*'
+                Action: ['cloudfront:CreateInvalidation']
 
   #
   # Original Bucket
