@@ -2,6 +2,34 @@ var AWS = require("aws-sdk");
 var s3 = new AWS.S3();
 var cloudfront = new AWS.CloudFront();
 
+var async = require('async')
+var fs = require('fs');
+var mime = require('mime');
+var path = require('path');
+
+var walk = function(dir, done) {
+  var results = [];
+  fs.readdir(dir, function(err, list) {
+    if (err) return done(err);
+    var pending = list.length;
+    if (!pending) return done(null, results);
+    list.forEach(function(file) {
+      file = path.resolve(dir, file);
+      fs.stat(file, function(err, stat) {
+        if (stat && stat.isDirectory()) {
+          walk(file, function(err, res) {
+            results = results.concat(res);
+            if (!--pending) done(null, results);
+          });
+        } else {
+          results.push(file);
+          if (!--pending) done(null, results);
+        }
+      });
+    });
+  });
+};
+
 function stripPrefix(object) {
   return object.Key.replace('pics/original/', '');
 }
@@ -17,18 +45,33 @@ exports.handler = function(event, context) {
       return;
     }
     var objects = data.Contents.map(stripPrefix);
-    // console.log("objects: " + objects);
-
     var albums = Array.from(new Set(objects.map(folderName)));
-    // console.log("albums: " + albums);
 
-    s3.putObject({
-      "Bucket": "protected.pictures4",
-      "Key": "index.html",
-      "Body": Buffer.from(albums.toString(), "utf8"),
-      "ContentType": "text/html"
-    }, function(err) {
-      if (err) console.log("error uploading index.html: " + err, err.stack);
+    var dir = 'multiverse';
+    walk(dir, function(err, files) {
+      if (err) throw err;
+
+      async.map(files, function (f, cb) {
+        var body = fs.readFileSync(f);
+
+        if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
+          return;
+        } else if (path.basename(f) == 'index.template.html') {
+          f = f.replace('index.template.html', 'index.html');
+          body = body.toString().replace('{articles}', albums.toString())
+        }
+
+        var options = {
+          Bucket: "protected.pictures4",
+          Key: path.relative(dir, f),
+          Body: body,
+          ContentType: mime.lookup(path.extname(f))
+        };
+
+        s3.putObject(options, cb);
+      }, function (err, results) {
+        if (err) console.log(err, err.stack);
+      });
     });
 
     // TODO: Dynamically pull distribution ID from CloudFront domain name

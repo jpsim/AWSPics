@@ -9,7 +9,8 @@
     "test": "standard"
   },
   "dependencies": {
-    "async": "^2.1.4"
+    "async": "^2.1.4",
+    "mime": "^1.3.6"
   },
   "devDependencies": {
     "standard": "^8.6.0"
