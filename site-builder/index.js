@@ -1,5 +1,6 @@
 var AWS = require("aws-sdk");
 var s3 = new AWS.S3();
+var cloudfront = new AWS.CloudFront();
 
 function stripPrefix(object) {
   return object.Key.replace('pics/original/', '');
@@ -28,6 +29,26 @@ exports.handler = function(event, context) {
       "ContentType": "text/html"
     }, function(err) {
       if (err) console.log("error uploading index.html: " + err, err.stack);
+    });
+
+    // TODO: Dynamically pull distribution ID from CloudFront domain name
+    //       already available as process.env['CLOUDFRONT_DISTRIBUTION_DOMAIN']
+
+    var params = {
+      DistributionId: 'E3Q2NM3S7HHGF4',
+      InvalidationBatch: {
+        CallerReference: 'site-builder-' + Date.now(),
+        Paths: {
+          Quantity: 1,
+          Items: [
+            '/*' // TODO: Only invalidate the paths that are touched
+          ]
+        }
+      }
+    };
+    cloudfront.createInvalidation(params, function(err, data) {
+      if (err) console.log(err, err.stack); // an error occurred
+      else     console.log(data);           // successful response
     });
   });
 };
