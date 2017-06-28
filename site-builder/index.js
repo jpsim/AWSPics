@@ -20,5 +20,14 @@ exports.handler = function(event, context) {
 
     var albums = Array.from(new Set(objects.map(folderName)));
     console.log("albums: " + albums);
+
+    s3.putObject({
+      "Bucket": "protected.pictures4",
+      "Key": "index.html",
+      "Body": Buffer.from(albums.toString(), "utf8"),
+      "ContentType": "text/html"
+    }, function(err) {
+      if (err) console.log("error uploading index.html: " + err, err.stack);
+    });
   });
 };
