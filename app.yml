@@ -152,6 +152,10 @@ Resources:
         Variables:
           CLOUDFRONT_DISTRIBUTION_DOMAIN:
             !GetAtt ProtectedPicturesDistribution.DomainName
+          ORIGINAL_BUCKET: !Sub
+            - ${websiteDomain}-original
+            - websiteDomain: !Ref websiteDomain
+          SITE_BUCKET: !Ref websiteDomain
       Role: !GetAtt SiteBuilderLambdaRole.Arn
       Timeout: 30
       MemorySize: 1024

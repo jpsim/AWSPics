@@ -79,7 +79,7 @@ function uploadHomepageSite(albums, albumsAndPictures) {
       }
 
       var options = {
-        Bucket: "protected.pictures4",
+        Bucket: process.env['SITE_BUCKET'],
         Key: path.relative(dir, f),
         Body: body,
         ContentType: mime.lookup(path.extname(f))
@@ -124,7 +124,7 @@ function invalidateCloudFront() {
 }
 
 exports.handler = function(event, context) {
-  s3.listObjectsV2({Bucket: "protected.pictures4-original"}, function(err, data) {
+  s3.listObjectsV2({Bucket: process.env['ORIGINAL_BUCKET']}, function(err, data) {
     // Handle error
     if (err) {
       console.log(err, err.stack);
