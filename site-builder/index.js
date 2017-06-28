@@ -44,7 +44,9 @@ exports.handler = function(event, context) {
       console.log(err, err.stack);
       return;
     }
-    var objects = data.Contents.map(stripPrefix);
+    var objects = data.Contents.sort(function(a,b){
+      return b.LastModified - a.LastModified;
+    }).map(stripPrefix);
     var albums = Array.from(new Set(objects.map(folderName)));
 
     var dir = 'multiverse';
