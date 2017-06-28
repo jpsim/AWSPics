@@ -22,12 +22,6 @@ docker run "cloudformation-lambda-cookies" > dist/lambda.zip
   docker run "cloudformation-lambda-resize" > ../dist/lambda-resize.zip
 )
 
-(
-  cd site-builder
-  docker build -t "cloudformation-lambda-site-builder" .
-  docker run "cloudformation-lambda-site-builder" > ../dist/lambda-site-builder.zip
-)
-
 # create the target S3 bucket if needed
 aws s3 ls ${s3Bucket} > /dev/null
 if [ $? -ne 0 ]; then
