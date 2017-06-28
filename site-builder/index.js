@@ -97,6 +97,38 @@ function uploadHomepageSite(albums, pictures, metadata) {
   });
 }
 
+function uploadAlbumSite(title, pictures, metadata) {
+  var dir = 'lens';
+  walk(dir, function(err, files) {
+    if (err) throw err;
+
+    async.map(files, function(f, cb) {
+      var body = fs.readFileSync(f);
+
+      if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
+        return;
+      } else if (path.basename(f) == 'index.html') {
+        var renderedTitle = title;
+        if (metadata && metadata.title) {
+          renderedTitle = metadata.title;
+        }
+        body = body.toString().replace(/\{title\}/g, renderedTitle);
+      }
+
+      var options = {
+        Bucket: process.env.SITE_BUCKET,
+        Key: title + "/" + path.relative(dir, f),
+        Body: body,
+        ContentType: mime.lookup(path.extname(f))
+      };
+
+      s3.putObject(options, cb);
+    }, function(err, results) {
+      if (err) console.log(err, err.stack);
+    });
+  });
+}
+
 function invalidateCloudFront() {
   cloudfront.listDistributions(function(err, data) {
     // Handle error
@@ -162,6 +194,10 @@ exports.handler = function(event, context) {
     async.map(albumsAndPictures.albums, getAlbumMetadata, function(err, metadata) {
       // Upload homepage site
       uploadHomepageSite(albumsAndPictures.albums, albumsAndPictures.pictures, metadata);
+
+      for (var i = albumsAndPictures.albums.length - 1; i >= 0; i--) {
+        uploadAlbumSite(albumsAndPictures.albums[i], albumsAndPictures.pictures[i], metadata[i]);
+      }
 
       // Invalidate CloudFront
       invalidateCloudFront();
