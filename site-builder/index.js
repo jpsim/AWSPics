@@ -78,23 +78,31 @@ exports.handler = function(event, context) {
       });
     });
 
-    // TODO: Dynamically pull distribution ID from CloudFront domain name
-    //       already available as process.env['CLOUDFRONT_DISTRIBUTION_DOMAIN']
-
-    var params = {
-      DistributionId: 'E3Q2NM3S7HHGF4',
-      InvalidationBatch: {
-        CallerReference: 'site-builder-' + Date.now(),
-        Paths: {
-          Quantity: 1,
-          Items: [
-            '/*' // TODO: Only invalidate the paths that are touched
-          ]
-        }
+    cloudfront.listDistributions(function(err, data) {
+      if (err) {
+        console.log(err, err.stack);
+        return;
       }
-    };
-    cloudfront.createInvalidation(params, function(err, data) {
-      if (err) console.log(err, err.stack);
+
+      var distributionID = data.Items.find(function (d) {
+          return d.DomainName == process.env['CLOUDFRONT_DISTRIBUTION_DOMAIN'];
+      }).Id;
+
+      var params = {
+        DistributionId: distributionID,
+        InvalidationBatch: {
+          CallerReference: 'site-builder-' + Date.now(),
+          Paths: {
+            Quantity: 1,
+            Items: [
+              '/*'
+            ]
+          }
+        }
+      };
+      cloudfront.createInvalidation(params, function(err, data) {
+        if (err) console.log(err, err.stack);
+      });
     });
   });
 };
