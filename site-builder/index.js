@@ -47,7 +47,18 @@ exports.handler = function(event, context) {
     var objects = data.Contents.sort(function(a,b){
       return b.LastModified - a.LastModified;
     }).map(stripPrefix);
-    var albums = Array.from(new Set(objects.map(folderName)));
+    var albums = objects.map(folderName);
+    albums = albums.filter(function(item, pos) {
+        return albums.indexOf(item) == pos;
+    });
+
+    var albumsAndPictures = {};
+    for (var i = albums.length - 1; i >= 0; i--) {
+      albumsAndPictures[albums[i]] = objects.filter(function(object){
+        return object.startsWith(albums[i] + "/");
+      });
+    }
+    console.log("albumsAndPictures: " + JSON.stringify(albumsAndPictures));
 
     var dir = 'multiverse';
     walk(dir, function(err, files) {
@@ -61,9 +72,9 @@ exports.handler = function(event, context) {
         } else if (path.basename(f) == 'index.template.html') {
           f = f.replace('index.template.html', 'index.html');
           var replacement = '';
-          for (var i = albums.length - 1; i >= 0; i--) {
+          for (var i = 0; i < albums.length; i++) {
             replacement += "\t\t\t\t\t\t<article class=\"thumb\">\n" +
-                            "\t\t\t\t\t\t\t<a href=\"https://pics.jpsim.com/" + albums[i] + "/index.html\" class=\"image\"><img src=\"https://dvowid7hugjpo.cloudfront.net/pics/resized/360x225/First%20Album/00.jpg\" alt=\"\" /></a>\n" +
+                            "\t\t\t\t\t\t\t<a href=\"" + albums[i] + "/index.html\" class=\"image\"><img src=\"/pics/resized/360x225/" + albumsAndPictures[albums[i]][0] + "\" alt=\"\" /></a>\n" +
                             "\t\t\t\t\t\t\t<h2>" + albums[i] + "</h2>\n" +
                             "\t\t\t\t\t\t</article>\n"
           }
