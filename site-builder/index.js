@@ -58,10 +58,13 @@ exports.handler = function(event, context) {
           return;
         } else if (path.basename(f) == 'index.template.html') {
           f = f.replace('index.template.html', 'index.html');
-          var replacement = "\t\t\t\t\t\t<article class=\"thumb\">\n" +
-                            "\t\t\t\t\t\t\t<a href=\"https://pics.jpsim.com/" + albums[0] + "/index.html\" class=\"image\"><img src=\"https://dvowid7hugjpo.cloudfront.net/pics/resized/360x225/First%20Album/00.jpg\" alt=\"\" /></a>\n" +
-                            "\t\t\t\t\t\t\t<h2>" + albums[0] + "</h2>\n" +
-                            "\t\t\t\t\t\t</article>"
+          var replacement = '';
+          for (var i = albums.length - 1; i >= 0; i--) {
+            replacement += "\t\t\t\t\t\t<article class=\"thumb\">\n" +
+                            "\t\t\t\t\t\t\t<a href=\"https://pics.jpsim.com/" + albums[i] + "/index.html\" class=\"image\"><img src=\"https://dvowid7hugjpo.cloudfront.net/pics/resized/360x225/First%20Album/00.jpg\" alt=\"\" /></a>\n" +
+                            "\t\t\t\t\t\t\t<h2>" + albums[i] + "</h2>\n" +
+                            "\t\t\t\t\t\t</article>\n"
+          }
           body = body.toString().replace('{articles}', replacement);
         }
 
