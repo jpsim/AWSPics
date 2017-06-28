@@ -38,87 +38,109 @@ function folderName(path) {
   return path.split('/')[0];
 }
 
-exports.handler = function(event, context) {
-  s3.listObjectsV2({Bucket: "protected.pictures4-original"}, function(err, data) {
+function getAlbums(data) {
+  var objects = data.Contents.sort(function(a,b){
+    return b.LastModified - a.LastModified;
+  }).map(stripPrefix);
+  var albums = objects.map(folderName);
+  albums = albums.filter(function(item, pos) {
+      return albums.indexOf(item) == pos;
+  });
+
+  var albumsAndPictures = {};
+  for (var i = albums.length - 1; i >= 0; i--) {
+    albumsAndPictures[albums[i]] = objects.filter(function(object){
+      return object.startsWith(albums[i] + "/");
+    });
+  }
+  return {albums: albums, albumsAndPictures: albumsAndPictures}
+}
+
+function uploadHomepageSite(albums, albumsAndPictures) {
+  var dir = 'multiverse';
+  walk(dir, function(err, files) {
+    if (err) throw err;
+
+    async.map(files, function (f, cb) {
+      var body = fs.readFileSync(f);
+
+      if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
+        return;
+      } else if (path.basename(f) == 'index.template.html') {
+        f = f.replace('index.template.html', 'index.html');
+        var replacement = '';
+        for (var i = 0; i < albums.length; i++) {
+          replacement += "\t\t\t\t\t\t<article class=\"thumb\">\n" +
+                          "\t\t\t\t\t\t\t<a href=\"" + albums[i] + "/index.html\" class=\"image\"><img src=\"/pics/resized/360x225/" + albumsAndPictures[albums[i]][0] + "\" alt=\"\" /></a>\n" +
+                          "\t\t\t\t\t\t\t<h2>" + albums[i] + "</h2>\n" +
+                          "\t\t\t\t\t\t</article>\n"
+        }
+        body = body.toString().replace('{articles}', replacement);
+      }
+
+      var options = {
+        Bucket: "protected.pictures4",
+        Key: path.relative(dir, f),
+        Body: body,
+        ContentType: mime.lookup(path.extname(f))
+      };
+
+      s3.putObject(options, cb);
+    }, function (err, results) {
+      if (err) console.log(err, err.stack);
+    });
+  });
+}
+
+function invalidateCloudFront() {
+  cloudfront.listDistributions(function(err, data) {
+    // Handle error
     if (err) {
       console.log(err, err.stack);
       return;
     }
-    var objects = data.Contents.sort(function(a,b){
-      return b.LastModified - a.LastModified;
-    }).map(stripPrefix);
-    var albums = objects.map(folderName);
-    albums = albums.filter(function(item, pos) {
-        return albums.indexOf(item) == pos;
-    });
 
-    var albumsAndPictures = {};
-    for (var i = albums.length - 1; i >= 0; i--) {
-      albumsAndPictures[albums[i]] = objects.filter(function(object){
-        return object.startsWith(albums[i] + "/");
-      });
+    // Get distribution ID from domain name
+    var distributionID = data.Items.find(function (d) {
+        return d.DomainName == process.env['CLOUDFRONT_DISTRIBUTION_DOMAIN'];
+    }).Id;
+
+    // Create invalidation
+    cloudfront.createInvalidation({
+      DistributionId: distributionID,
+      InvalidationBatch: {
+        CallerReference: 'site-builder-' + Date.now(),
+        Paths: {
+          Quantity: 1,
+          Items: [
+            '/*'
+          ]
+        }
+      }
+    }, function(err, data) {
+      if (err) console.log(err, err.stack);
+    });
+  });
+}
+
+exports.handler = function(event, context) {
+  s3.listObjectsV2({Bucket: "protected.pictures4-original"}, function(err, data) {
+    // Handle error
+    if (err) {
+      console.log(err, err.stack);
+      return;
     }
+
+    // Parse albums
+    var albumsAndAlbumsAndPictures = getAlbums(data),
+        albums = albumsAndAlbumsAndPictures.albums,
+        albumsAndPictures = albumsAndAlbumsAndPictures.albumsAndPictures
     console.log("albumsAndPictures: " + JSON.stringify(albumsAndPictures));
 
-    var dir = 'multiverse';
-    walk(dir, function(err, files) {
-      if (err) throw err;
+    // Upload homepage site
+    uploadHomepageSite(albums, albumsAndPictures);
 
-      async.map(files, function (f, cb) {
-        var body = fs.readFileSync(f);
-
-        if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
-          return;
-        } else if (path.basename(f) == 'index.template.html') {
-          f = f.replace('index.template.html', 'index.html');
-          var replacement = '';
-          for (var i = 0; i < albums.length; i++) {
-            replacement += "\t\t\t\t\t\t<article class=\"thumb\">\n" +
-                            "\t\t\t\t\t\t\t<a href=\"" + albums[i] + "/index.html\" class=\"image\"><img src=\"/pics/resized/360x225/" + albumsAndPictures[albums[i]][0] + "\" alt=\"\" /></a>\n" +
-                            "\t\t\t\t\t\t\t<h2>" + albums[i] + "</h2>\n" +
-                            "\t\t\t\t\t\t</article>\n"
-          }
-          body = body.toString().replace('{articles}', replacement);
-        }
-
-        var options = {
-          Bucket: "protected.pictures4",
-          Key: path.relative(dir, f),
-          Body: body,
-          ContentType: mime.lookup(path.extname(f))
-        };
-
-        s3.putObject(options, cb);
-      }, function (err, results) {
-        if (err) console.log(err, err.stack);
-      });
-    });
-
-    cloudfront.listDistributions(function(err, data) {
-      if (err) {
-        console.log(err, err.stack);
-        return;
-      }
-
-      var distributionID = data.Items.find(function (d) {
-          return d.DomainName == process.env['CLOUDFRONT_DISTRIBUTION_DOMAIN'];
-      }).Id;
-
-      var params = {
-        DistributionId: distributionID,
-        InvalidationBatch: {
-          CallerReference: 'site-builder-' + Date.now(),
-          Paths: {
-            Quantity: 1,
-            Items: [
-              '/*'
-            ]
-          }
-        }
-      };
-      cloudfront.createInvalidation(params, function(err, data) {
-        if (err) console.log(err, err.stack);
-      });
-    });
+    // Invalidate CloudFront
+    invalidateCloudFront();
   });
 };
