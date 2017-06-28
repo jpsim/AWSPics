@@ -17,10 +17,10 @@ exports.handler = function(event, context) {
       return;
     }
     var objects = data.Contents.map(stripPrefix);
-    console.log("objects: " + objects);
+    // console.log("objects: " + objects);
 
     var albums = Array.from(new Set(objects.map(folderName)));
-    console.log("albums: " + albums);
+    // console.log("albums: " + albums);
 
     s3.putObject({
       "Bucket": "protected.pictures4",
@@ -47,8 +47,7 @@ exports.handler = function(event, context) {
       }
     };
     cloudfront.createInvalidation(params, function(err, data) {
-      if (err) console.log(err, err.stack); // an error occurred
-      else     console.log(data);           // successful response
+      if (err) console.log(err, err.stack);
     });
   });
 };
