@@ -68,8 +68,7 @@ function uploadHomepageSite(albums, albumsAndPictures) {
 
       if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
         return;
-      } else if (path.basename(f) == 'index.template.html') {
-        f = f.replace('index.template.html', 'index.html');
+      } else if (path.basename(f) == 'index.html') {
         var replacement = '';
         for (var i = 0; i < albums.length; i++) {
           replacement += "\t\t\t\t\t\t<article class=\"thumb\">\n" +
