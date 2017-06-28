@@ -63,7 +63,7 @@ function uploadHomepageSite(albums, pictures, metadata) {
   walk(dir, function(err, files) {
     if (err) throw err;
 
-    async.map(files, function (f, cb) {
+    async.map(files, function(f, cb) {
       var body = fs.readFileSync(f);
 
       if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
@@ -91,7 +91,7 @@ function uploadHomepageSite(albums, pictures, metadata) {
       };
 
       s3.putObject(options, cb);
-    }, function (err, results) {
+    }, function(err, results) {
       if (err) console.log(err, err.stack);
     });
   });
@@ -128,7 +128,26 @@ function invalidateCloudFront() {
   });
 }
 
+function getAlbumMetadata(album, cb) {
+  s3.getObject({
+    "Bucket": process.env.ORIGINAL_BUCKET,
+    "Key": "pics/original/" + album + "/metadata.yml"
+  }, function(err, data) {
+    if (err) {
+      cb(null, null);
+    } else {
+      try {
+        var doc = yaml.safeLoad(data.Body.toString());
+        cb(null, doc);
+      } catch (err) {
+        cb(null, null);
+      }
+    }
+  });
+}
+
 exports.handler = function(event, context) {
+  // List all bucket objects
   s3.listObjectsV2({Bucket: process.env.ORIGINAL_BUCKET}, function(err, data) {
     // Handle error
     if (err) {
@@ -137,30 +156,12 @@ exports.handler = function(event, context) {
     }
 
     // Parse albums
-    var albumsAndpictures = getAlbums(data),
-        albums = albumsAndpictures.albums,
-        pictures = albumsAndpictures.pictures;
-    // console.log("pictures: " + JSON.stringify(pictures));
+    var albumsAndPictures = getAlbums(data);
 
-    async.map(albums, function (album, cb) {
-      s3.getObject({
-        "Bucket": process.env.ORIGINAL_BUCKET,
-        "Key": "pics/original/" + album + "/metadata.yml"
-      }, function(err, data) {
-        if (err) {
-          cb(null, null);
-        } else {
-          try {
-            var doc = yaml.safeLoad(data.Body.toString());
-            cb(null, doc);
-          } catch (err) {
-            cb(null, null);
-          }
-        }
-      });
-    }, function (err, metadata) {
+    // Get metadata for all albums
+    async.map(albumsAndPictures.albums, getAlbumMetadata, function(err, metadata) {
       // Upload homepage site
-      uploadHomepageSite(albums, pictures, metadata);
+      uploadHomepageSite(albumsAndPictures.albums, albumsAndPictures.pictures, metadata);
 
       // Invalidate CloudFront
       invalidateCloudFront();

@@ -11,8 +11,9 @@ RUN npm install --production
 # add source code
 COPY index.js /build/index.js
 
-# add multiverse template
+# add HTML templates
 COPY multiverse /build/multiverse
+COPY lens /build/lens
 
 # zip entire context and stream output
 RUN zip -r /build/dist.zip . > /dev/null
