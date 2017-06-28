@@ -1,0 +1,17 @@
+{
+  "name": "lambda-site-builder",
+  "version": "1.0.0",
+  "description": "AWS Lambda function that regenerates a static web gallery when images are dropped onto an S3 bucket, uploading the site to another bucket.",
+  "author": "JP Simard",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "test": "standard"
+  },
+  "dependencies": {
+    "async": "^2.1.4"
+  },
+  "devDependencies": {
+    "standard": "^8.6.0"
+  }
+}
