@@ -6,6 +6,7 @@ var async = require('async')
 var fs = require('fs');
 var mime = require('mime');
 var path = require('path');
+var yaml = require('js-yaml');
 
 var walk = function(dir, done) {
   var results = [];
@@ -43,6 +44,7 @@ function getAlbums(data) {
     return b.LastModified - a.LastModified;
   }).map(stripPrefix);
   var albums = objects.map(folderName);
+  // Deduplicate albums
   albums = albums.filter(function(item, pos) {
       return albums.indexOf(item) == pos;
   });
@@ -50,7 +52,7 @@ function getAlbums(data) {
   var albumsAndPictures = {};
   for (var i = albums.length - 1; i >= 0; i--) {
     albumsAndPictures[albums[i]] = objects.filter(function(object){
-      return object.startsWith(albums[i] + "/");
+      return object.startsWith(albums[i] + "/") && object.endsWith('.jpg');
     });
   }
   return {albums: albums, albumsAndPictures: albumsAndPictures}
@@ -123,6 +125,24 @@ function invalidateCloudFront() {
   });
 }
 
+function getAlbumMetadata(album, cb) {
+  s3.getObject({
+    "Bucket": process.env['ORIGINAL_BUCKET'],
+    "Key": "pics/original/" + album + "/metadata.yml"
+  }, function(err, data) {
+    if (err) {
+      cb(err);
+    } else {
+      try {
+        var doc = yaml.safeLoad(data.Body.toString());
+        cb(null, doc);
+      } catch (err) {
+        cb(err);
+      }
+    }
+  });
+}
+
 exports.handler = function(event, context) {
   s3.listObjectsV2({Bucket: process.env['ORIGINAL_BUCKET']}, function(err, data) {
     // Handle error
@@ -135,7 +155,14 @@ exports.handler = function(event, context) {
     var albumsAndAlbumsAndPictures = getAlbums(data),
         albums = albumsAndAlbumsAndPictures.albums,
         albumsAndPictures = albumsAndAlbumsAndPictures.albumsAndPictures
-    console.log("albumsAndPictures: " + JSON.stringify(albumsAndPictures));
+    // console.log("albumsAndPictures: " + JSON.stringify(albumsAndPictures));
+
+    for (var i = albums.length - 1; i >= 0; i--) {
+      getAlbumMetadata(albums[i], function(err, metadata) {
+        if (err) console.log(err, err.stack);
+        else console.log(JSON.stringify(metadata));
+      });
+    }
 
     // Upload homepage site
     uploadHomepageSite(albums, albumsAndPictures);
