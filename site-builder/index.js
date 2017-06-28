@@ -69,18 +69,18 @@ function uploadHomepageSite(albums, pictures, metadata) {
       if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
         return;
       } else if (path.basename(f) == 'index.html') {
-        var replacement = '';
+        var picturesHTML = '';
         for (var i = 0; i < albums.length; i++) {
           var albumTitle = albums[i];
           if (metadata[i] && metadata[i].title) {
             albumTitle = metadata[i].title;
           }
-          replacement += "\t\t\t\t\t\t<article class=\"thumb\">\n" +
+          picturesHTML += "\t\t\t\t\t\t<article class=\"thumb\">\n" +
                           "\t\t\t\t\t\t\t<a href=\"" + albums[i] + "/index.html\" class=\"image\"><img src=\"/pics/resized/360x225/" + pictures[i][0] + "\" alt=\"\" /></a>\n" +
                           "\t\t\t\t\t\t\t<h2>" + albumTitle + "</h2>\n" +
                           "\t\t\t\t\t\t</article>\n";
         }
-        body = body.toString().replace('{pictures}', replacement);
+        body = body.toString().replace('{pictures}', picturesHTML);
       }
 
       var options = {
@@ -119,9 +119,19 @@ function uploadAlbumSite(title, pictures, metadata) {
           if (metadata.comment1) comment1 = metadata.comment1;
           if (metadata.comment2) comment2 = metadata.comment2;
         }
+
+        // Pictures
+        var picturesHTML = '';
+        for (var i = pictures.length - 1; i >= 0; i--) {
+          picturesHTML += "\t\t\t\t\t\t<article>\n" +
+                          "\t\t\t\t\t\t\t<a class=\"thumbnail\" href=\"/pics/resized/1200x750/" + pictures[i] + "\" data-position=\"center\"><img class=\"lazy\" src=\"assets/css/images/placeholder.png\" data-original=\"/pics/resized/360x225/" + pictures[i] + "\" width=\"360\" height=\"225\"/></a>\n" +
+                          "<p><a href=\"/pics/original/" + pictures[i] + "\" download>High Resolution Download</a></p>\n" +
+                          "\t\t\t\t\t\t</article>";
+        }
         body = body.toString().replace(/\{title\}/g, renderedTitle)
                               .replace(/\{comment1\}/g, comment1)
-                              .replace(/\{comment2\}/g, comment2);
+                              .replace(/\{comment2\}/g, comment2)
+                              .replace(/\{pictures\}/g, picturesHTML);
       }
 
       var options = {
