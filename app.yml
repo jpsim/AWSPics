@@ -203,7 +203,9 @@ Resources:
             Statement:
               - Effect: Allow
                 Resource: '*'
-                Action: ['cloudfront:CreateInvalidation']
+                Action:
+                  - cloudfront:CreateInvalidation
+                  - cloudfront:ListDistributions
 
   #
   # Original Bucket
