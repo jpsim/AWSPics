@@ -76,7 +76,7 @@ function uploadHomepageSite(albums, pictures, metadata) {
             albumTitle = metadata[i].title;
           }
           picturesHTML += "\t\t\t\t\t\t<article class=\"thumb\">\n" +
-                          "\t\t\t\t\t\t\t<a href=\"" + albums[i] + "/index.html\" class=\"image\"><img src=\"/pics/resized/360x225/" + pictures[i][0] + "\" alt=\"\" /></a>\n" +
+                          "\t\t\t\t\t\t\t<a href=\"" + albums[i] + "/index.html\" class=\"image\"><img src=\"/pics/resized/1200x750/" + pictures[i][0] + "\" alt=\"\" /></a>\n" +
                           "\t\t\t\t\t\t\t<h2>" + albumTitle + "</h2>\n" +
                           "\t\t\t\t\t\t</article>\n";
         }
