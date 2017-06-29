@@ -214,6 +214,7 @@ exports.handler = function(event, context) {
       // Upload homepage site
       uploadHomepageSite(albumsAndPictures.albums, albumsAndPictures.pictures, metadata);
 
+      // Upload album sites
       for (var i = albumsAndPictures.albums.length - 1; i >= 0; i--) {
         uploadAlbumSite(albumsAndPictures.albums[i], albumsAndPictures.pictures[i], metadata[i]);
       }
