@@ -54,7 +54,7 @@ Resources:
       Role: !GetAtt LambdaRole.Arn
       Environment:
         Variables:
-          WEBSITE_DOMAIN: !Ref websiteDomain
+          WEBSITE_DOMAIN: !Ref website
           SESSION_DURATION: !Ref sessionDuration
           REDIRECT_ON_SUCCESS: !Ref redirectOnSuccess
           CLOUDFRONT_KEYPAIR_ID: !Ref cloudFrontKeypairId
@@ -373,6 +373,8 @@ Resources:
           - TargetOriginId: !Sub
               - S3-${websiteDomain}-resized
               - websiteDomain: !Ref websiteDomain
+            TrustedSigners:
+              - self
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/resized/*'
             ForwardedValues:
@@ -380,6 +382,8 @@ Resources:
           - TargetOriginId: !Sub
               - S3-${websiteDomain}-original
               - websiteDomain: !Ref websiteDomain
+            TrustedSigners:
+              - self
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/original/*'
             ForwardedValues:
@@ -417,6 +421,8 @@ Resources:
           TargetOriginId: !Sub
             - S3-${websiteDomain}
             - websiteDomain: !Ref websiteDomain
+          TrustedSigners:
+            - self
           ForwardedValues:
             QueryString: 'false'
           ViewerProtocolPolicy: redirect-to-https
