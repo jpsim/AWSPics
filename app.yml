@@ -320,6 +320,14 @@ Resources:
                 - id: !Ref originAccessIdentity
 
   #
+  # SSL Certificate
+  #
+  V1SSLCert:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: v1.awspics.net
+
+  #
   # CloudFront Distribution
   #
   ProtectedPicturesDistribution:
