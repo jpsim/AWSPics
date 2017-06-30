@@ -11,6 +11,7 @@ else
 fi
 
 output_template_file=$(mktemp)
+stackName="ProtectedPictures"
 
 # build Lambda code for Linux
 docker build -t "cloudformation-lambda-cookies" .
@@ -43,10 +44,10 @@ aws cloudformation package \
 # deploy it
 aws cloudformation deploy \
     --template-file ${output_template_file} \
-    --stack-name ProtectedPictures \
+    --stack-name ${stackName} \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides file://dist/config.json
 
 # Invoke SiteBuilder function
-funcName="$(aws cloudformation describe-stack-resource --stack-name ProtectedPictures --logical-resource-id SiteBuilderFunction | sed -n 's/.*"PhysicalResourceId": "\(.*\)",/\1/p')"
+funcName="$(aws cloudformation describe-stack-resource --stack-name ${stackName} --logical-resource-id SiteBuilderFunction | sed -n 's/.*"PhysicalResourceId": "\(.*\)",/\1/p')"
 aws lambda invoke --function-name ${funcName} "$(mktemp)"
