@@ -406,6 +406,13 @@ Resources:
                 - Referer
         Enabled: 'true'
         DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponsePagePath: /error.html
+            ResponseCode: 403
+          - ErrorCode: 404
+            ResponsePagePath: /index.html
+            ResponseCode: 404
         DefaultCacheBehavior:
           TargetOriginId: !Sub
             - S3-${websiteDomain}
