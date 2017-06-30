@@ -4,6 +4,9 @@ Transform: AWS::Serverless-2016-10-31
 Description: AWS stack to run a serverless password-protected photo gallery
 
 Parameters:
+  websiteTitle:
+    Description: Title to be displayed on the website
+    Type: String
   loginAPIDomain:
     Description: Login API Domain
     Type: String
@@ -54,6 +57,7 @@ Resources:
       Role: !GetAtt LambdaRole.Arn
       Environment:
         Variables:
+          WEBSITE_TITLE: !Ref websiteTitle
           WEBSITE_DOMAIN: !Ref website
           SESSION_DURATION: !Ref sessionDuration
           REDIRECT_ON_SUCCESS: !Ref redirectOnSuccess

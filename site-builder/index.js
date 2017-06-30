@@ -82,7 +82,8 @@ function uploadHomepageSite(albums, pictures, metadata) {
                           "\t\t\t\t\t\t\t<h2>" + albumTitle + "</h2>\n" +
                           "\t\t\t\t\t\t</article>\n";
         }
-        body = body.toString().replace('{pictures}', picturesHTML);
+        body = body.toString().replace(/\{title\}/g, process.env.WEBSITE_TITLE)
+                              .replace(/\{pictures\}/g, picturesHTML);
       }
 
       var options = {
