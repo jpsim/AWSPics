@@ -326,6 +326,8 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        Aliases:
+          - v1.awspics.net
         Origins:
           - DomainName: !Sub
               - ${websiteDomain}-resized.s3.amazonaws.com
