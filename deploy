@@ -48,4 +48,5 @@ aws cloudformation deploy \
     --parameter-overrides file://dist/config.json
 
 # Invoke SiteBuilder function
-aws lambda invoke --function-name ProtectedPictures-SiteBuilderFunction-K8VFTAUZF3FK "$(mktemp)"
+funcName="$(aws cloudformation describe-stack-resource --stack-name ProtectedPictures --logical-resource-id SiteBuilderFunction | sed -n 's/.*"PhysicalResourceId": "\(.*\)",/\1/p')"
+aws lambda invoke --function-name ${funcName} "$(mktemp)"
