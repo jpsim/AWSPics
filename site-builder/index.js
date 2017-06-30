@@ -68,6 +68,8 @@ function uploadHomepageSite(albums, pictures, metadata) {
 
       if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
         return;
+      } else if (path.basename(f) == 'error.html') {
+        body = body.toString().replace(/\{website\}/g, process.env.WEBSITE);
       } else if (path.basename(f) == 'index.html') {
         var picturesHTML = '';
         for (var i = 0; i < albums.length; i++) {

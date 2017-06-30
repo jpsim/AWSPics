@@ -10,6 +10,9 @@ Parameters:
   originAccessIdentity:
     Description: CloudFront OAI
     Type: String
+  website:
+    Description: Actual website
+    Type: String
   websiteDomain:
     Description: Website domain
     Type: String
@@ -156,6 +159,7 @@ Resources:
             - ${websiteDomain}-original
             - websiteDomain: !Ref websiteDomain
           SITE_BUCKET: !Ref websiteDomain
+          WEBSITE: !Ref website
       Role: !GetAtt SiteBuilderLambdaRole.Arn
       Timeout: 30
       MemorySize: 1024
@@ -327,7 +331,7 @@ Resources:
     Properties:
       DistributionConfig:
         Aliases:
-          - v1.awspics.net
+          - !Ref website
         Origins:
           - DomainName: !Sub
               - ${websiteDomain}-resized.s3.amazonaws.com
