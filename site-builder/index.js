@@ -66,9 +66,7 @@ function uploadHomepageSite(albums, pictures, metadata) {
     async.map(files, function(f, cb) {
       var body = fs.readFileSync(f);
 
-      if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
-        return;
-      } else if (path.basename(f) == 'error.html') {
+      if (path.basename(f) == 'error.html') {
         body = body.toString().replace(/\{website\}/g, process.env.WEBSITE);
       } else if (path.basename(f) == 'index.html') {
         var picturesHTML = '';
@@ -108,9 +106,7 @@ function uploadAlbumSite(title, pictures, metadata) {
     async.map(files, function(f, cb) {
       var body = fs.readFileSync(f);
 
-      if (path.basename(f) == '.DS_Store' || f.includes('assets/sass/')) {
-        return;
-      } else if (path.basename(f) == 'index.html') {
+      if (path.basename(f) == 'index.html') {
         // Defaults
         var renderedTitle = title,
             comment1 = '';
