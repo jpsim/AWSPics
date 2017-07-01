@@ -1,9 +1,13 @@
 [
-  "websiteDomain=website.com",
+  "website=website.com",
+  "websiteTitle=My awesome private photo gallery",
+  "webBucket=html-files-here",
+  "sourceBucket=original-images-here",
+  "resizedBucket=resized-images-here",
+  "originAccessIdentity=EJG...",
   "sessionDuration=86400",
-  "redirectOnSuccess=false",
   "kmsKeyId=00000000-0000-0000-0000-000000000000",
   "cloudFrontKeypairId=APK...",
-  "encryptedCloudFrontPrivateKey=AQECAH...",
-  "encryptedHtpasswd=AQECAH..."
+  "encryptedCloudFrontPrivateKey=AQICAH...",
+  "encryptedHtpasswd=AQICAH..."
 ]
