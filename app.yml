@@ -48,6 +48,9 @@ Parameters:
     Description: htpasswd file contents encrypted with KMS
     Type: String
     NoEcho: true
+  certificateARN:
+    Description: Amazon ARN for the SSL certificate to use to serve the website over SSL.
+    Type: String
 
 Resources:
 
@@ -435,5 +438,5 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_All
         ViewerCertificate:
-          AcmCertificateArn: arn:aws:acm:us-east-1:382210734147:certificate/b41faaf8-4719-4f95-8aaf-639b0cc3fb5a
+          AcmCertificateArn: !Ref certificateARN
           SslSupportMethod: sni-only
