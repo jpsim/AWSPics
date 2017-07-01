@@ -1,6 +1,6 @@
-# lambda-cloudfront-cookies
+# AWSPics
 
-> AWS Lambda to protect your CloudFront content with username/passwords
+> An AWS CloudFormation stack to run a serverless password-protected photo gallery
 
 ## How it works
 
