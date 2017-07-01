@@ -53,11 +53,10 @@ Resources:
     Properties:
       Handler: index.handler
       Runtime: nodejs4.3
-      CodeUri: dist/lambda.zip
+      CodeUri: dist/lambda-login.zip
       Role: !GetAtt LambdaRole.Arn
       Environment:
         Variables:
-          WEBSITE_TITLE: !Ref websiteTitle
           WEBSITE_DOMAIN: !Ref website
           SESSION_DURATION: !Ref sessionDuration
           REDIRECT_ON_SUCCESS: !Ref redirectOnSuccess
@@ -157,6 +156,7 @@ Resources:
       CodeUri: dist/lambda-site-builder.zip
       Environment:
         Variables:
+          WEBSITE_TITLE: !Ref websiteTitle
           CLOUDFRONT_DISTRIBUTION_DOMAIN:
             !GetAtt ProtectedPicturesDistribution.DomainName
           ORIGINAL_BUCKET: !Sub

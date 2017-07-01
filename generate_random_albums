@@ -2,16 +2,18 @@
 
 if [ -z "$2" ]; then
   echo "Usage:"
-  echo "  generate_random_albums <root bucket> <number of albums>"
+  echo "  generate_random_albums <web bucket> <original bucket> <resized bucket> <number of albums>"
   echo "Removes all bucket contents, downloads 6 pictures for each album from unsplash.com, giving each album a random name, uploads them to the original bucket."
   exit 1
 else
-  rootBucket=$1
-  numberOfAlbums=$2
+  webBucket=$1
+  originalBucket=$2
+  resizedBucket=$3
+  numberOfAlbums=$4
 fi
 
-echo "Removing all files in bucket"
-for bucket in "$rootBucket" "$rootBucket-original" "$rootBucket-resized"; do
+echo "Removing all files in web, original & resized buckets"
+for bucket in "$webBucket" "$originalBucket" "$resizedBucket"; do
   aws s3 rm --recursive "s3://$bucket" >> /dev/null 2>&1
 done
 
@@ -27,6 +29,6 @@ for (( albumIndex = 0; albumIndex < ${numberOfAlbums}; albumIndex++ )); do
       curl -sL https://source.unsplash.com/random -o "$pic"
     done
     prevMD5+=("$(md5sum $pic | awk '{print $1}')")
-    aws s3 cp "$pic" "s3://$rootBucket-original/pics/original/Album $albumNumber/0$picIndex.jpg" >> /dev/null 2>&1
+    aws s3 cp "$pic" "s3://$originalBucket/pics/original/Album $albumNumber/0$picIndex.jpg" >> /dev/null 2>&1
   done
 done

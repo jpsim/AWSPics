@@ -13,21 +13,13 @@ fi
 output_template_file=$(mktemp)
 stackName="ProtectedPictures"
 
-# build Lambda code for Linux
-docker build -t "cloudformation-lambda-cookies" .
-docker run "cloudformation-lambda-cookies" > dist/lambda.zip
-
-(
-  cd resize
-  docker build -t "cloudformation-lambda-resize" .
-  docker run "cloudformation-lambda-resize" > ../dist/lambda-resize.zip
-)
-
-(
-  cd site-builder
-  docker build -t "cloudformation-lambda-site-builder" .
-  docker run "cloudformation-lambda-site-builder" > ../dist/lambda-site-builder.zip
-)
+for function in login resize site-builder; do
+  (
+    cd $function
+    docker build -t "cloudformation-lambda-$function" .
+    docker run "cloudformation-lambda-$function" > ../dist/lambda-$function.zip
+  )
+done
 
 # create the target S3 bucket if needed
 aws s3 ls ${s3Bucket} > /dev/null
