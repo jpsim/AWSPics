@@ -22,24 +22,24 @@ for function in login resize site-builder; do
 done
 
 # create the target S3 bucket if needed
-aws s3 ls ${s3Bucket} > /dev/null
-if [ $? -ne 0 ]; then
-  aws s3 mb ${s3Bucket}
+if ! aws s3 ls "${s3Bucket}" > /dev/null
+then
+  aws s3 mb "${s3Bucket}"
 fi
 
 # create and upload the CloudFormation package
 aws cloudformation package \
     --template-file app.yml \
-    --output-template-file ${output_template_file} \
-    --s3-bucket ${s3Bucket}
+    --output-template-file "${output_template_file}" \
+    --s3-bucket "${s3Bucket}"
 
 # deploy it
 aws cloudformation deploy \
-    --template-file ${output_template_file} \
+    --template-file "${output_template_file}" \
     --stack-name ${stackName} \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides file://dist/config.json
 
 # Invoke SiteBuilder function
 funcName="$(aws cloudformation describe-stack-resource --stack-name ${stackName} --logical-resource-id SiteBuilderFunction | sed -n 's/.*"PhysicalResourceId": "\(.*\)",/\1/p')"
-aws lambda invoke --function-name ${funcName} "$(mktemp)"
+aws lambda invoke --function-name "${funcName}" "$(mktemp)"
