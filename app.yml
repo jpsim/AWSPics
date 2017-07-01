@@ -25,9 +25,6 @@ Parameters:
   website:
     Description: Actual website
     Type: String
-  websiteDomain:
-    Description: Website domain
-    Type: String
   sessionDuration:
     Description: Number of seconds the user has access to the file
     Type: Number
@@ -116,6 +113,9 @@ Resources:
       Runtime: nodejs6.10
       CodeUri: dist/lambda-resize.zip
       Role: !GetAtt ResizeLambdaRole.Arn
+      Environment:
+        Variables:
+          RESIZED_BUCKET: !Ref resizedBucket
       Timeout: 30
       MemorySize: 1024
 
@@ -142,16 +142,16 @@ Resources:
             Statement:
               - Effect: Allow
                 Resource: !Sub
-                  - 'arn:aws:s3:::${websiteDomain}-original/*'
-                  - websiteDomain: !Ref websiteDomain
+                  - 'arn:aws:s3:::${sourceBucket}/*'
+                  - sourceBucket: !Ref sourceBucket
                 Action: ['s3:GetObject']
         - PolicyName: ResizeLambdaPutResized
           PolicyDocument:
             Statement:
               - Effect: Allow
                 Resource: !Sub
-                  - 'arn:aws:s3:::${websiteDomain}-resized/*'
-                  - websiteDomain: !Ref websiteDomain
+                  - 'arn:aws:s3:::${resizedBucket}/*'
+                  - resizedBucket: !Ref resizedBucket
                 Action: ['s3:PutObject']
 
   #
@@ -168,10 +168,8 @@ Resources:
           WEBSITE_TITLE: !Ref websiteTitle
           CLOUDFRONT_DISTRIBUTION_DOMAIN:
             !GetAtt ProtectedPicturesDistribution.DomainName
-          ORIGINAL_BUCKET: !Sub
-            - ${websiteDomain}-original
-            - websiteDomain: !Ref websiteDomain
-          SITE_BUCKET: !Ref websiteDomain
+          ORIGINAL_BUCKET: !Ref sourceBucket
+          SITE_BUCKET: !Ref webBucket
           WEBSITE: !Ref website
       Role: !GetAtt SiteBuilderLambdaRole.Arn
       Timeout: 30
@@ -200,24 +198,24 @@ Resources:
             Statement:
               - Effect: Allow
                 Resource: !Sub
-                  - 'arn:aws:s3:::${websiteDomain}-original/*'
-                  - websiteDomain: !Ref websiteDomain
+                  - 'arn:aws:s3:::${sourceBucket}/*'
+                  - sourceBucket: !Ref sourceBucket
                 Action: ['s3:GetObject']
         - PolicyName: SiteBuilderLambdaListOriginal
           PolicyDocument:
             Statement:
               - Effect: Allow
                 Resource: !Sub
-                  - 'arn:aws:s3:::${websiteDomain}-original'
-                  - websiteDomain: !Ref websiteDomain
+                  - 'arn:aws:s3:::${sourceBucket}'
+                  - sourceBucket: !Ref sourceBucket
                 Action: ['s3:ListBucket']
         - PolicyName: SiteBuilderLambdaPutSite
           PolicyDocument:
             Statement:
               - Effect: Allow
                 Resource: !Sub
-                  - 'arn:aws:s3:::${websiteDomain}/*'
-                  - websiteDomain: !Ref websiteDomain
+                  - 'arn:aws:s3:::${webBucket}/*'
+                  - webBucket: !Ref webBucket
                 Action: ['s3:PutObject']
         - PolicyName: SiteBuilderLambdaInvalidateDistribution
           PolicyDocument:
@@ -239,15 +237,13 @@ Resources:
       Principal: s3.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub
-        - arn:aws:s3:::${websiteDomain}-original
-        - websiteDomain: !Ref websiteDomain
+        - arn:aws:s3:::${sourceBucket}
+        - sourceBucket: !Ref sourceBucket
   OriginalBucket:
     Type: AWS::S3::Bucket
     DependsOn: ResizeInvokePermission
     Properties:
-      BucketName: !Sub
-        - ${websiteDomain}-original
-        - websiteDomain: !Ref websiteDomain
+      BucketName: !Ref sourceBucket
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
@@ -281,14 +277,12 @@ Resources:
       Principal: s3.amazonaws.com
       SourceAccount: !Ref AWS::AccountId
       SourceArn: !Sub
-        - arn:aws:s3:::${websiteDomain}-resized
-        - websiteDomain: !Ref websiteDomain
+        - arn:aws:s3:::${resizedBucket}
+        - resizedBucket: !Ref resizedBucket
   ResizedBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub
-        - ${websiteDomain}-resized
-        - websiteDomain: !Ref websiteDomain
+      BucketName: !Ref resizedBucket
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
@@ -317,7 +311,7 @@ Resources:
   WebBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Ref websiteDomain
+      BucketName: !Ref webBucket
   WebBucketPolicy:
     Type: AWS::S3::BucketPolicy
     DependsOn: WebBucket
@@ -347,31 +341,31 @@ Resources:
           - !Ref website
         Origins:
           - DomainName: !Sub
-              - ${websiteDomain}-resized.s3.amazonaws.com
-              - websiteDomain: !Ref websiteDomain
+              - ${resizedBucket}.s3.amazonaws.com
+              - resizedBucket: !Ref resizedBucket
             Id: !Sub
-              - S3-${websiteDomain}-resized
-              - websiteDomain: !Ref websiteDomain
+              - S3-${resizedBucket}
+              - resizedBucket: !Ref resizedBucket
             S3OriginConfig:
               OriginAccessIdentity: !Sub
                 - origin-access-identity/cloudfront/${id}
                 - id: !Ref originAccessIdentity
           - DomainName: !Sub
-              - ${websiteDomain}-original.s3.amazonaws.com
-              - websiteDomain: !Ref websiteDomain
+              - ${sourceBucket}.s3.amazonaws.com
+              - sourceBucket: !Ref sourceBucket
             Id: !Sub
-              - S3-${websiteDomain}-original
-              - websiteDomain: !Ref websiteDomain
+              - S3-${sourceBucket}
+              - sourceBucket: !Ref sourceBucket
             S3OriginConfig:
               OriginAccessIdentity: !Sub
                 - origin-access-identity/cloudfront/${id}
                 - id: !Ref originAccessIdentity
           - DomainName: !Sub
-              - ${websiteDomain}.s3.amazonaws.com
-              - websiteDomain: !Ref websiteDomain
+              - ${webBucket}.s3.amazonaws.com
+              - webBucket: !Ref webBucket
             Id: !Sub
-              - S3-${websiteDomain}
-              - websiteDomain: !Ref websiteDomain
+              - S3-${webBucket}
+              - webBucket: !Ref webBucket
             S3OriginConfig:
               OriginAccessIdentity: !Sub
                 - origin-access-identity/cloudfront/${id}
@@ -384,8 +378,8 @@ Resources:
               OriginProtocolPolicy: https-only
         CacheBehaviors:
           - TargetOriginId: !Sub
-              - S3-${websiteDomain}-resized
-              - websiteDomain: !Ref websiteDomain
+              - S3-${resizedBucket}
+              - resizedBucket: !Ref resizedBucket
             TrustedSigners:
               - self
             ViewerProtocolPolicy: https-only
@@ -393,8 +387,8 @@ Resources:
             ForwardedValues:
               QueryString: 'false'
           - TargetOriginId: !Sub
-              - S3-${websiteDomain}-original
-              - websiteDomain: !Ref websiteDomain
+              - S3-${sourceBucket}
+              - sourceBucket: !Ref sourceBucket
             TrustedSigners:
               - self
             ViewerProtocolPolicy: https-only
@@ -432,8 +426,8 @@ Resources:
             ResponseCode: 404
         DefaultCacheBehavior:
           TargetOriginId: !Sub
-            - S3-${websiteDomain}
-            - websiteDomain: !Ref websiteDomain
+            - S3-${webBucket}
+            - webBucket: !Ref webBucket
           TrustedSigners:
             - self
           ForwardedValues:
