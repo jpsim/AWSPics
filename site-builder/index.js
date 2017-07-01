@@ -46,7 +46,7 @@ function getAlbums(data) {
   var albums = objects.map(folderName);
   // Deduplicate albums
   albums = albums.filter(function(item, pos) {
-      return albums.indexOf(item) == pos;
+    return albums.indexOf(item) == pos;
   });
 
   var pictures = albums.map(function(album){
@@ -161,7 +161,7 @@ function invalidateCloudFront() {
 
     // Get distribution ID from domain name
     var distributionID = data.Items.find(function (d) {
-        return d.DomainName == process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
+      return d.DomainName == process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN;
     }).Id;
 
     // Create invalidation

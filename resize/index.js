@@ -56,7 +56,7 @@ exports.handler = function(event, context) {
         var height = config.split('x')[1]
         var operation = im(image.buffer).resize(width, height, '^');
         if (config == "360x225") {
-            operation = operation.gravity('Center').crop(width, height);
+          operation = operation.gravity('Center').crop(width, height);
         }
         operation.toBuffer(image.imageType, function(err, buffer) {
           if (err) {
