@@ -7,6 +7,15 @@ Parameters:
   websiteTitle:
     Description: Title to be displayed on the website
     Type: String
+  webBucket:
+    Description: Bucket to store published website
+    Type: String
+  sourceBucket:
+    Description: Bucket to store site data such as original pictures and metadata
+    Type: String
+  resizedBucket:
+    Description: Bucket to store resized pictures
+    Type: String
   loginAPIDomain:
     Description: Login API Domain
     Type: String
