@@ -5,14 +5,8 @@
   "author": "JP Simard",
   "license": "MIT",
   "main": "index.js",
-  "scripts": {
-    "test": "standard"
-  },
   "dependencies": {
     "async": "^2.1.4",
     "gm": "^1.21.1"
-  },
-  "devDependencies": {
-    "standard": "^8.6.0"
   }
 }

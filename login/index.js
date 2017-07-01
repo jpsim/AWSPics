@@ -44,7 +44,7 @@ exports.handler = (event, context, callback) => {
           var responseHeaders = cookiesHeaders(config)
           callback(null, {
             statusCode: 200,
-            body: JSON.stringify(responseHeaders), 
+            body: JSON.stringify(responseHeaders),
             headers: responseHeaders
           })
         } else {
@@ -98,7 +98,8 @@ function getConfigValue (configName, target, done) {
 
 // --------------
 // Creates 3 CloudFront signed cookies
-// They're effectively an IAM policy, and a private signature to prove it's valid
+// They're effectively an IAM policy, a private signature to prove it's valid,
+// and a reference to which key pair ID was used
 // --------------
 
 function cookiesHeaders (config) {
