@@ -347,9 +347,7 @@ Resources:
           - DomainName: !Sub
               - ${resizedBucket}.s3.amazonaws.com
               - resizedBucket: !Ref resizedBucket
-            Id: !Sub
-              - S3-${resizedBucket}
-              - resizedBucket: !Ref resizedBucket
+            Id: S3-ResizedBucket
             S3OriginConfig:
               OriginAccessIdentity: !Sub
                 - origin-access-identity/cloudfront/${id}
@@ -357,9 +355,7 @@ Resources:
           - DomainName: !Sub
               - ${sourceBucket}.s3.amazonaws.com
               - sourceBucket: !Ref sourceBucket
-            Id: !Sub
-              - S3-${sourceBucket}
-              - sourceBucket: !Ref sourceBucket
+            Id: S3-SourceBucket
             S3OriginConfig:
               OriginAccessIdentity: !Sub
                 - origin-access-identity/cloudfront/${id}
@@ -367,9 +363,7 @@ Resources:
           - DomainName: !Sub
               - ${webBucket}.s3.amazonaws.com
               - webBucket: !Ref webBucket
-            Id: !Sub
-              - S3-${webBucket}
-              - webBucket: !Ref webBucket
+            Id: S3-WebBucket
             S3OriginConfig:
               OriginAccessIdentity: !Sub
                 - origin-access-identity/cloudfront/${id}
@@ -377,33 +371,25 @@ Resources:
           - DomainName: !Sub
               - ${apiID}.execute-api.${AWS::Region}.amazonaws.com
               - apiID: !Ref ServerlessRestApi
-            Id: !Sub
-              - Custom-${loginAPIDomain}
-              - loginAPIDomain: !Ref ServerlessRestApi
+            Id: Custom-LoginAPI
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
         CacheBehaviors:
-          - TargetOriginId: !Sub
-              - S3-${resizedBucket}
-              - resizedBucket: !Ref resizedBucket
+          - TargetOriginId: S3-ResizedBucket
             TrustedSigners:
               - self
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/resized/*'
             ForwardedValues:
               QueryString: 'false'
-          - TargetOriginId: !Sub
-              - S3-${sourceBucket}
-              - sourceBucket: !Ref sourceBucket
+          - TargetOriginId: S3-SourceBucket
             TrustedSigners:
               - self
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/original/*'
             ForwardedValues:
               QueryString: 'false'
-          - TargetOriginId: !Sub
-              - Custom-${loginAPIDomain}
-              - loginAPIDomain: !Ref ServerlessRestApi
+          - TargetOriginId: Custom-LoginAPI
             ViewerProtocolPolicy: https-only
             PathPattern: 'Prod/*'
             AllowedMethods:
@@ -431,9 +417,7 @@ Resources:
             ResponsePagePath: /index.html
             ResponseCode: 404
         DefaultCacheBehavior:
-          TargetOriginId: !Sub
-            - S3-${webBucket}
-            - webBucket: !Ref webBucket
+          TargetOriginId: S3-WebBucket
           TrustedSigners:
             - self
           ForwardedValues:
