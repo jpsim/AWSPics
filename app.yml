@@ -28,9 +28,6 @@ Parameters:
   sessionDuration:
     Description: Number of seconds the user has access to the file
     Type: Number
-  redirectOnSuccess:
-    Description: Whether to send a HTTP 200 or 302 on successful login (boolean)
-    Type: String
   kmsKeyId:
     Description: ID of the KMS key used to encrypt other parameters
     Type: String
@@ -65,7 +62,6 @@ Resources:
         Variables:
           WEBSITE_DOMAIN: !Ref website
           SESSION_DURATION: !Ref sessionDuration
-          REDIRECT_ON_SUCCESS: !Ref redirectOnSuccess
           CLOUDFRONT_KEYPAIR_ID: !Ref cloudFrontKeypairId
           ENCRYPTED_CLOUDFRONT_PRIVATE_KEY: !Ref encryptedCloudFrontPrivateKey
           ENCRYPTED_HTPASSWD: !Ref encryptedHtpasswd

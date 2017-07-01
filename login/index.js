@@ -1,8 +1,6 @@
 // Note: no need to bundle <aws-sdk>, it's provided by Lambda
 const AWS = require('aws-sdk')
 const async = require('async')
-// const contentType = require('content-type')
-const qs = require('querystringparser')
 const htpasswd = require('htpasswd-auth')
 const cloudfront = require('aws-cloudfront-sign')
 
@@ -13,7 +11,6 @@ const cloudfront = require('aws-cloudfront-sign')
 const CONFIG_KEYS = {
   websiteDomain: 'WEBSITE_DOMAIN',
   sessionDuration: 'SESSION_DURATION',
-  redirectOnSuccess: 'REDIRECT_ON_SUCCESS',
   cloudFrontKeypairId: 'CLOUDFRONT_KEYPAIR_ID',
   cloudFrontPrivateKey: 'ENCRYPTED_CLOUDFRONT_PRIVATE_KEY',
   htpasswd: 'ENCRYPTED_HTPASSWD'
@@ -25,9 +22,7 @@ const CONFIG_KEYS = {
 // --------------
 
 exports.handler = (event, context, callback) => {
-  // try to parse the request payload based on Content-Type
-  const requestHeaders = normaliseHeaders(event.headers)
-  const body = parsePayload(event.body, requestHeaders)
+  const body = parsePayload(event.body)
   if (!body || !body.username || !body.password) {
     return callback(null, {
       statusCode: 400,
@@ -47,13 +42,8 @@ exports.handler = (event, context, callback) => {
         if (authenticated) {
           console.log('Successful login for: ' + body.username)
           var responseHeaders = cookiesHeaders(config)
-          var statusCode = 200
-          if (config.redirectOnSuccess === 'true') {
-            statusCode = 302
-            responseHeaders['Location'] = requestHeaders['referer'] || '/'
-          }
           callback(null, {
-            statusCode: statusCode,
+            statusCode: 200,
             body: JSON.stringify(responseHeaders), 
             headers: responseHeaders
           })
@@ -76,22 +66,14 @@ exports.handler = (event, context, callback) => {
 }
 
 // --------------
-// Parse the body, either from JSON or Form data
+// Parse the body from JSON
 // --------------
 
-function parsePayload (body, headers) {
-  const type = headers['content-type']
-  // const parsedType = contentType.parse(rawType)
-  if (type === 'application/json') {
-    try {
-      return JSON.parse(body)
-    } catch (e) {
-      console.log('Failed to parse JSON payload')
-      return null
-    }
-  } else if (type === 'application/x-www-form-urlencoded') {
-    return qs.parse(body)
-  } else {
+function parsePayload (body) {
+  try {
+    return JSON.parse(body)
+  } catch (e) {
+    console.log('Failed to parse JSON payload')
     return null
   }
 }
@@ -112,18 +94,6 @@ function getConfigValue (configName, target, done) {
   } else {
     done(null, process.env[configName])
   }
-}
-
-// --------------
-// Returns an object with all HTTP headers in lowercase
-// Because browsers will send inconsistent keys like 'Content-Type' or 'content-type'
-// --------------
-
-function normaliseHeaders (headers) {
-  return Object.keys(headers).reduce((acc, key) => {
-    acc[key.toLowerCase()] = headers[key]
-    return acc
-  }, {})
 }
 
 // --------------
