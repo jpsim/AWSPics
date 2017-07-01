@@ -11,7 +11,7 @@ else
 fi
 
 output_template_file=$(mktemp)
-stackName="ProtectedPictures"
+stackName="AWSPics"
 
 for function in login resize site-builder; do
   (
@@ -22,9 +22,9 @@ for function in login resize site-builder; do
 done
 
 # create the target S3 bucket if needed
-if ! aws s3 ls "${s3Bucket}" > /dev/null
+if ! aws s3 ls "s3://${s3Bucket}" > /dev/null
 then
-  aws s3 mb "${s3Bucket}"
+  aws s3 mb "s3://${s3Bucket}"
 fi
 
 # create and upload the CloudFormation package

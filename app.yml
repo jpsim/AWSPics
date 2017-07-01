@@ -48,9 +48,6 @@ Parameters:
     Description: htpasswd file contents encrypted with KMS
     Type: String
     NoEcho: true
-  certificateARN:
-    Description: Amazon ARN for the SSL certificate to use to serve the website over SSL.
-    Type: String
 
 Resources:
 
@@ -170,7 +167,7 @@ Resources:
         Variables:
           WEBSITE_TITLE: !Ref websiteTitle
           CLOUDFRONT_DISTRIBUTION_DOMAIN:
-            !GetAtt ProtectedPicturesDistribution.DomainName
+            !GetAtt WebDistribution.DomainName
           ORIGINAL_BUCKET: !Ref sourceBucket
           SITE_BUCKET: !Ref webBucket
           WEBSITE: !Ref website
@@ -242,7 +239,7 @@ Resources:
       SourceArn: !Sub
         - arn:aws:s3:::${sourceBucket}
         - sourceBucket: !Ref sourceBucket
-  OriginalBucket:
+  SourceBucket:
     Type: AWS::S3::Bucket
     DependsOn: ResizeInvokePermission
     Properties:
@@ -251,11 +248,11 @@ Resources:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
             Function: !GetAtt ResizeFunction.Arn
-  OriginalBucketPolicy:
+  SourceBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    DependsOn: OriginalBucket
+    DependsOn: SourceBucket
     Properties:
-      Bucket: !Ref OriginalBucket
+      Bucket: !Ref SourceBucket
       PolicyDocument:
         Statement:
           - Action:
@@ -263,7 +260,7 @@ Resources:
             Effect: Allow
             Resource: !Sub
               - '${bucket}/*'
-              - bucket: !GetAtt OriginalBucket.Arn
+              - bucket: !GetAtt SourceBucket.Arn
             Principal:
               AWS: !Sub
                 - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}
@@ -334,9 +331,17 @@ Resources:
                 - id: !Ref originAccessIdentity
 
   #
+  # SSL Certificate
+  #
+  SSLCert:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref website
+
+  #
   # CloudFront Distribution
   #
-  ProtectedPicturesDistribution:
+  WebDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
@@ -373,10 +378,12 @@ Resources:
               OriginAccessIdentity: !Sub
                 - origin-access-identity/cloudfront/${id}
                 - id: !Ref originAccessIdentity
-          - DomainName: !Ref loginAPIDomain
+          - DomainName: !Sub
+              - ${apiID}.execute-api.${AWS::Region}.amazonaws.com
+              - apiID: !Ref ServerlessRestApi
             Id: !Sub
               - Custom-${loginAPIDomain}
-              - loginAPIDomain: !Ref loginAPIDomain
+              - loginAPIDomain: !Ref ServerlessRestApi
             CustomOriginConfig:
               OriginProtocolPolicy: https-only
         CacheBehaviors:
@@ -400,7 +407,7 @@ Resources:
               QueryString: 'false'
           - TargetOriginId: !Sub
               - Custom-${loginAPIDomain}
-              - loginAPIDomain: !Ref loginAPIDomain
+              - loginAPIDomain: !Ref ServerlessRestApi
             ViewerProtocolPolicy: https-only
             PathPattern: 'Prod/*'
             AllowedMethods:
@@ -438,5 +445,5 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_All
         ViewerCertificate:
-          AcmCertificateArn: !Ref certificateARN
+          AcmCertificateArn: !Ref SSLCert
           SslSupportMethod: sni-only
