@@ -12,8 +12,8 @@ RUN npm install --production
 COPY index.js /build/index.js
 
 # add HTML templates
-COPY multiverse /build/multiverse
-COPY lens /build/lens
+COPY homepage /build/homepage
+COPY album /build/album
 
 # zip entire context and stream output
 RUN zip -r /build/dist.zip . > /dev/null

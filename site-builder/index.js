@@ -59,7 +59,7 @@ function getAlbums(data) {
 }
 
 function uploadHomepageSite(albums, pictures, metadata) {
-  var dir = 'multiverse';
+  var dir = 'homepage';
   walk(dir, function(err, files) {
     if (err) throw err;
 
@@ -99,7 +99,7 @@ function uploadHomepageSite(albums, pictures, metadata) {
 }
 
 function uploadAlbumSite(title, pictures, metadata) {
-  var dir = 'lens';
+  var dir = 'album';
   walk(dir, function(err, files) {
     if (err) throw err;
 
