@@ -3,7 +3,7 @@
 > An AWS CloudFormation stack to run a serverless password-protected photo
   gallery
 
-Example: <https://v2.awspics.net>
+Example: <https://v2.awspics.net>  
 Credentials: "username" / "password"
 
 ## Goals
