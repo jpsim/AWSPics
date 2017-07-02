@@ -74,7 +74,7 @@ Requires that `aws-cli`, `docker` and `htpasswd` be installed.
    ```
    aws cloudfront create-cloud-front-origin-access-identity \
                   --cloud-front-origin-access-identity-config \
-                  "CallerReference=$(cat /dev/urandom | tr -dc A-Z0-9 | head -c14),Comment=AWSPics OAI"
+                  "CallerReference=$(cat /dev/urandom | base64 | base64 | head -c 14),Comment=AWSPics OAI"
    ```
 
 ## Deployment
