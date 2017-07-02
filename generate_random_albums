@@ -2,14 +2,14 @@
 
 if [ -z "$2" ]; then
   echo "Usage:"
-  echo "  generate_random_albums <web bucket> <source bucket> <resized bucket> <number of albums>"
+  echo "  generate_random_albums <number of albums>"
   echo "Removes all bucket contents, downloads 6 pictures for each album from unsplash.com, giving each album a random name, uploads them to the original bucket."
   exit 1
 else
-  webBucket=$1
-  sourceBucket=$2
-  resizedBucket=$3
-  numberOfAlbums=$4
+  webBucket="$(sed -n 's/  "webBucket=\(.*\)"\,/\1/p' dist/config.json)"
+  sourceBucket="$(sed -n 's/  "sourceBucket=\(.*\)"\,/\1/p' dist/config.json)"
+  resizedBucket="$(sed -n 's/  "resizedBucket=\(.*\)"\,/\1/p' dist/config.json)"
+  numberOfAlbums=$1
 fi
 
 echo "Removing all files in web, source & resized buckets"

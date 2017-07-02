@@ -145,11 +145,8 @@ There's a script included that will pull random images from
 [Unsplash](https://unsplash.com/) to populate your photo gallery with sample
 content.
 
-```
-# usage:
-./generate_random_albums <web bucket> <source bucket> <resized bucket> <number of albums>
-# example:
-./generate_random_albums v2.awspics.net v2.awspics.net-original v2.awspics.net-resized 2
+```bash
+./generate_random_albums <number of albums>
 ```
 
 ### How the Authentication Works
