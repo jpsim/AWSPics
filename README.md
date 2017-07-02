@@ -42,6 +42,8 @@ You'll also need a domain whose CNAME DNS value you can update.
 
 ## Instructions
 
+A video walkthrough [is available on YouTube](https://youtu.be/010AGcY4uoE).
+
 1. Configure `aws-cli` (recommended to use `us-east-1`, see "Miscellaneous"
    below):
    ```
