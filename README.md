@@ -24,7 +24,7 @@ There are 7 main components:
    allow access to restricted buckets.
 3. **Source S3 bucket** to store original pictures and metadata driving the
    site.
-4. **Resized S3 bucket** to store resized version of the original pictures.
+4. **Resized S3 bucket** to store resized versions of the original pictures.
 5. **Web S3 bucket** to store the static website generated from the data in the
    source bucket.
 6. **Resize lambda function** to automatically resize images added to the source
