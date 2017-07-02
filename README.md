@@ -144,6 +144,7 @@ You can then deploy the full stack using:
 
 ```bash
 # name of an S3 bucket for storing the Lambda code
+# bucket will be created if it doesn't already exist
 ./deploy awspics-lambda
 ```
 
