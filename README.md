@@ -8,9 +8,9 @@
 
 ## Goals
 
-Host a self-contained, password-protected, data-driven static photo gallery to
-share personal pictures with friends and family, without needing to run,
-maintain (or pay for) servers.
+Host a self-contained, declarative infrastructure, password-protected,
+data-driven static photo gallery to share personal pictures with friends and
+family, without needing to run, maintain (or pay for) servers.
 
 ## Architecture
 
@@ -147,6 +147,16 @@ You can then deploy the full stack using:
 # bucket will be created if it doesn't already exist
 ./deploy awspics-lambda
 ```
+
+Any subsequent changes that you make to this code can be redeployed with the
+same command. CloudFormation will create a "changeset" to only update the
+modified resources.
+
+## Generate Sample Albums
+
+There's a script included that will pull random images from
+[Unsplash](https://unsplash.com/) to populate your photo gallery with sample
+content.
 
 ## Miscellaneous
 
