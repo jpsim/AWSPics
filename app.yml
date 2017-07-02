@@ -16,9 +16,6 @@ Parameters:
   resizedBucket:
     Description: Bucket to store resized pictures
     Type: String
-  loginAPIDomain:
-    Description: Login API Domain
-    Type: String
   originAccessIdentity:
     Description: CloudFront OAI
     Type: String
