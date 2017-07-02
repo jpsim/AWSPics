@@ -108,8 +108,9 @@ Browser                   CloudFront             Lambda              S3
 
 ## Deployment
 
-Create a configuration file called `dist/config.json`, based on [config.example.json](config.example.json).
-Make sure you don't commit this file to source control (the `dist` folder is ignored).
+Create a configuration file called `dist/config.json`, based on
+[config.example.json](config.example.json). Make sure you don't commit this file
+to source control (the `dist` folder is ignored).
 
 It should contain the following info - minus the comments:
 
