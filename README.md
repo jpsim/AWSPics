@@ -186,7 +186,7 @@ Browser                   CloudFront             Lambda              S3
 This project only works as-is if everything is set up in the `us-east-1` AWS
 region, because CloudFormation only supports SSL certificates from that region.
 It's not too difficult to adapt this to work in another region, but you can't
-rely on the SSL certificate being created in CloudFormation. Created it manually
+rely on the SSL certificate being created in CloudFormation. Create it manually
 (using either the AWS Console or the CLI) and reference it in the
 `WebDistribution` by its ARN explicitly rather than the `!Ref SSLCert`
 reference.
