@@ -223,7 +223,7 @@ Resources:
                   - cloudfront:ListDistributions
 
   #
-  # Original Bucket
+  # Source Bucket
   #
   ResizeInvokePermission:
     Type: AWS::Lambda::Permission
