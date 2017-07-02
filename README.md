@@ -36,6 +36,8 @@ There are 7 main components:
 
 Requires that `aws-cli`, `docker` and `htpasswd` be installed.
 
+You'll also need a domain whose CNAME DNS value you can update.
+
 ## Instructions
 
 1. Configure `aws-cli` (recommended to use `us-east-1`, see "Miscellaneous"
@@ -138,6 +140,10 @@ You can then deploy the full stack using:
 Any subsequent changes that you make to this code can be redeployed with the
 same command. CloudFormation will create a "changeset" to only update the
 modified resources.
+
+The first deployment should take about 30 minutes since there's a lot to set up.
+You'll also receive an email to approve the SSL certificate request, which you
+should complete quickly, so that the rest of the deployment can proceed.
 
 ## Generate Sample Albums
 
