@@ -48,6 +48,7 @@ You'll also need a domain whose CNAME DNS value you can update.
    AWS Secret Access Key [None]: illx...
    Default region name [None]: us-east-1
    Default output format [None]:
+   $ aws configure set preview.cloudfront true
    ```
 2. Create KMS encryption key: `aws kms create-key`. Keep note of its `KeyId` in
    the response. Note that each KMS key costs $1/month.
