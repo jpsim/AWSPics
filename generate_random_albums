@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-if [ -z "$2" ]; then
+if [ -z "$1" ]; then
   echo "Usage:"
   echo "  generate_random_albums <number of albums>"
   echo "Removes all bucket contents, downloads 6 pictures for each album from unsplash.com, giving each album a random name, uploads them to the original bucket."
@@ -14,7 +14,7 @@ fi
 
 echo "Removing all files in web, source & resized buckets"
 for bucket in "$webBucket" "$sourceBucket" "$resizedBucket"; do
-  aws s3 rm --recursive "s3://$bucket" >> /dev/null 2>&1
+  aws s3 rm --recursive "s3://$bucket" >> /dev/null 2>&1 || true
 done
 
 prevMD5=()
