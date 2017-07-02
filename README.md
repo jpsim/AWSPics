@@ -49,13 +49,15 @@ Requires that `aws-cli`, `docker` and `htpasswd` be installed.
    ```
 2. Create KMS encryption key: `aws kms create-key`. Keep note of its `KeyId` in
    the response. Note that each KMS key costs $1/month.
-3. Create CloudFront Key Pair: <https://console.aws.amazon.com/iam/home?region=us-east-1#/security_credential>.
-   Download the private key.
+3. Create CloudFront Key Pair and download the private key:
+   <https://console.aws.amazon.com/iam/home?region=us-east-1#/security_credential>.
 4. Encrypt the CloudFront private key:
    ```
-   aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat pk-*.pem)" --query CiphertextBlob --output text
+   aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat pk-*.pem)" \
+                   --query CiphertextBlob --output text
    ```
-5. Create a local `htpasswd` file with your usernames and passwords. You can generate the hashes from the command line:
+5. Create a local `htpasswd` file with your usernames and passwords.
+   You can generate the hashes from the command line:
    ```
    $ htpasswd -nB username > htpasswd
    New password: **********
@@ -63,11 +65,14 @@ Requires that `aws-cli`, `docker` and `htpasswd` be installed.
    ```
 6. Encrypt your `htpasswd` file using KMS again:
    ```
-   aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat htpasswd)" --query CiphertextBlob --output text
+   aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat htpasswd)" \
+                   --query CiphertextBlob --output text
    ```
 7. Create CloudFront Origin Access Identity:
    ```
-   aws cloudfront create-cloud-front-origin-access-identity --cloud-front-origin-access-identity-config "CallerReference=$(cat /dev/urandom | tr -dc A-Z0-9 | head -c14),Comment=AWSPics OAI"
+   aws cloudfront create-cloud-front-origin-access-identity \
+                  --cloud-front-origin-access-identity-config \
+                  "CallerReference=$(cat /dev/urandom | tr -dc A-Z0-9 | head -c14),Comment=AWSPics OAI"
    ```
 
 ### How the Authentication Works
