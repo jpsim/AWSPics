@@ -158,6 +158,13 @@ There's a script included that will pull random images from
 [Unsplash](https://unsplash.com/) to populate your photo gallery with sample
 content.
 
+```
+# usage:
+./generate_random_albums <web bucket> <source bucket> <resized bucket> <number of albums>
+# example:
+./generate_random_albums v2.awspics.net v2.awspics.net-original v2.awspics.net-resized 2
+```
+
 ## Miscellaneous
 
 This project only works as-is if everything is set up in the `us-east-1` AWS
