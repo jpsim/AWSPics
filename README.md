@@ -146,6 +146,13 @@ The first deployment should take about 30 minutes since there's a lot to set up.
 You'll also receive an email to approve the SSL certificate request, which you
 should complete quickly, so that the rest of the deployment can proceed.
 
+Once the initial deployment is done, you'll need to point your domain's DNS
+settings to add a CNAME to the newly created CloudFront Distribution URL, which
+you can find by visiting the CloudFront section of the AWS Console. Once the DNS
+update has propagated, you'll be able to access your private photo gallery at
+that domain. However, there's no content yet, so you won't see much of anything.
+You can generate sample albums to see it in action.
+
 ## Generate Sample Albums
 
 There's a script included that will pull random images from
