@@ -77,35 +77,6 @@ Requires that `aws-cli`, `docker` and `htpasswd` be installed.
                   "CallerReference=$(cat /dev/urandom | tr -dc A-Z0-9 | head -c14),Comment=AWSPics OAI"
    ```
 
-### How the Authentication Works
-
-The Lambda function responsible for logging in creates signed session cookies
-when given valid credentials. CloudFront will verify that every request has
-valid cookies before forwarding them.
-
-```
-Browser                   CloudFront             Lambda              S3
-  |                           |                    |                 |
-  | ---------- get ---------> |                    |                 |
-  |                           |                    |                 |
-  |                      [no cookie]               |                 |
-  |                           |                    |                 |
-  |                           |                    |                 |
-  |                           |                    |                 |
-  | <------ error page ------ |                    |                 |
-  |                                                |                 |
-  | -------------------- login ------------------> |                 |
-  | <------------------- cookies ----------------- |                 |
-  |                                                                  |
-  | ---------- get ---------> |                                      |
-  |                           |                                      |
-  |                      [has cookie]                                |
-  |                           |                                      |
-  |                           | -----------------------------------> |
-  |                           | <------------ html page ------------ |
-  | <------ html page ------- |
-```
-
 ## Deployment
 
 Create a configuration file called `dist/config.json`, based on
@@ -179,6 +150,35 @@ content.
 ./generate_random_albums <web bucket> <source bucket> <resized bucket> <number of albums>
 # example:
 ./generate_random_albums v2.awspics.net v2.awspics.net-original v2.awspics.net-resized 2
+```
+
+### How the Authentication Works
+
+The Lambda function responsible for logging in creates signed session cookies
+when given valid credentials. CloudFront will verify that every request has
+valid cookies before forwarding them.
+
+```
+Browser                   CloudFront             Lambda              S3
+  |                           |                    |                 |
+  | ---------- get ---------> |                    |                 |
+  |                           |                    |                 |
+  |                      [no cookie]               |                 |
+  |                           |                    |                 |
+  |                           |                    |                 |
+  |                           |                    |                 |
+  | <------ error page ------ |                    |                 |
+  |                                                |                 |
+  | -------------------- login ------------------> |                 |
+  | <------------------- cookies ----------------- |                 |
+  |                                                                  |
+  | ---------- get ---------> |                                      |
+  |                           |                                      |
+  |                      [has cookie]                                |
+  |                           |                                      |
+  |                           | -----------------------------------> |
+  |                           | <------------ html page ------------ |
+  | <------ html page ------- |
 ```
 
 ## Miscellaneous
