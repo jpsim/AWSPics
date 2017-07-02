@@ -49,7 +49,8 @@ Requires that `aws-cli`, `docker` and `htpasswd` be installed.
    ```
 2. Create KMS encryption key: `aws kms create-key`. Keep note of its `KeyId` in
    the response. Note that each KMS key costs $1/month.
-3. Create CloudFront Key Pair and download the private key:
+3. Create CloudFront Key Pair, take note of the key pair ID and download the
+   private key:
    <https://console.aws.amazon.com/iam/home?region=us-east-1#/security_credential>.
 4. Encrypt the CloudFront private key:
    ```
@@ -68,7 +69,8 @@ Requires that `aws-cli`, `docker` and `htpasswd` be installed.
    aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat htpasswd)" \
                    --query CiphertextBlob --output text
    ```
-7. Create CloudFront Origin Access Identity:
+7. Create CloudFront Origin Access Identity, take note of the identity in the
+   response:
    ```
    aws cloudfront create-cloud-front-origin-access-identity \
                   --cloud-front-origin-access-identity-config \
@@ -117,14 +119,27 @@ It should contain the following info - minus the comments:
   // PLAIN TEXT SETTINGS
   // -------------------
 
-  // the website domain, as seen by the users
-  "websiteDomain=website.com",
+  // website domain
+  "website=website.com",
+  // title for the website
+  "websiteTitle=My awesome private photo gallery",
+  // S3 bucket where the static website generated from the data in the
+  // source bucket will be stored
+  "webBucket=html-files-here",
+  // S3 bucket where original pictures and metadata driving the site will be
+  // stored
+  "sourceBucket=original-images-here",
+  // S3 bucket where resized images will be stored
+  "resizedBucket=resized-images-here",
+  // Origin Access Identity from step 7
+  "originAccessIdentity=EJG...",
   // how long the CloudFront access is granted for, in seconds
-  // note that the cookies are session cookies, and will get deleted when the browser is closed anyway
+  // note that the cookies are session cookies, and will get deleted when the
+  // browser is closed anyway
   "sessionDuration=86400",
-  // KMS key ID created in step 1
+  // KMS key ID created in step 2
   "kmsKeyId=00000000-0000-0000-0000-000000000000",
-  // CloudFront key pair ID from step 2
+  // CloudFront key pair ID from step 3
   // This is not sensitive, and will be one of the cookie values
   "cloudFrontKeypairId=APK...",
 
@@ -132,11 +147,11 @@ It should contain the following info - minus the comments:
   // ENCRYPTED SETTINGS
   // ------------------
 
-  // encrypted CloudFront private key from step 2
-  "encryptedCloudFrontPrivateKey=AQECAH...",
+  // encrypted CloudFront private key from step 4
+  "encryptedCloudFrontPrivateKey=AQICAH...",
 
-  // encrypted contents of the <htpasswd> file from step 3
-  "encryptedHtpasswd=AQECAH..."
+  // encrypted contents of the <htpasswd> file from step 6
+  "encryptedHtpasswd=AQICAH..."
 ]
 ```
 
