@@ -78,8 +78,8 @@ Requires that `aws-cli`, `docker` and `htpasswd` be installed.
 ### How the Authentication Works
 
 The Lambda function responsible for logging in creates signed session cookies
-when given valid credentials.
-CloudFront will verify every request has valid cookies before forwarding them.
+when given valid credentials. CloudFront will verify that every request has
+valid cookies before forwarding them.
 
 ```
 Browser                   CloudFront             Lambda              S3
