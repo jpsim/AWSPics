@@ -32,16 +32,48 @@ There are 7 main components:
 7. **Site builder lambda function** to automatically rebuild the static website
    when changes are made to the source S3 bucket.
 
-### Authentication
+## Pre-requisites
 
-The first step is to have CloudFront in front of your S3 bucket.
+Requires that `aws-cli`, `docker` and `htpasswd` be installed.
 
-```
-Browser ----> CloudFront ----> S3 bucket
-```
+## Instructions
 
-We then add a Lambda function responsible for logging-in.
-When given valid credentials, this function creates signed session cookies.
+1. Configure `aws-cli` (recommended to use `us-east-1`, see "Miscellaneous"
+   below):
+   ```
+   $ aws configure
+   AWS Access Key ID [None]: AKIA...
+   AWS Secret Access Key [None]: illx...
+   Default region name [None]: us-east-1
+   Default output format [None]:
+   ```
+2. Create KMS encryption key: `aws kms create-key`. Keep note of its `KeyId` in
+   the response. Note that each KMS key costs $1/month.
+3. Create CloudFront Key Pair: <https://console.aws.amazon.com/iam/home?region=us-east-1#/security_credential>.
+   Download the private key.
+4. Encrypt the CloudFront private key:
+   ```
+   aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat pk-*.pem)" --query CiphertextBlob --output text
+   ```
+5. Create a local `htpasswd` file with your usernames and passwords. You can generate the hashes from the command line:
+   ```
+   $ htpasswd -nB username > htpasswd
+   New password: **********
+   Re-type new password: **********
+   ```
+6. Encrypt your `htpasswd` file using KMS again:
+   ```
+   aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat htpasswd)" --query CiphertextBlob --output text
+   ```
+7. Create CloudFront Origin Access Identity:
+   ```
+   aws cloudfront create-cloud-front-origin-access-identity --cloud-front-origin-access-identity-config "CallerReference=$(cat /dev/urandom | tr -dc A-Z0-9 | head -c14),Comment=AWSPics OAI"
+   ```
+
+### How the Authentication Works
+
+The Lambda function responsible for logging in creates signed session cookies
+when given valid credentials.
 CloudFront will verify every request has valid cookies before forwarding them.
 
 ```
@@ -65,42 +97,6 @@ Browser                   CloudFront             Lambda              S3
   |                           | -----------------------------------> |
   |                           | <------------ html page ------------ |
   | <------ html page ------- |
-```
-
-## Pre-requisites
-
-### 1. Encryption key
-
-- Create an encryption key in KMS, or choose one that you already have. Note that each KMS key costs $1/month.
-- Take note of the key ID.
-
-### 2. CloudFront key pair
-
-- Logging in with your AWS **root** account, generate a CloudFront key pair
-- Take note of the key pair ID
-- Download the private key, and encrypt it with KMS using
-
-```bash
-aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat pk-000000.pem)" --query CiphertextBlob --output text
-```
-
-- Write down the encrypted value, then secure the private key or delete it
-
-### 3. Htpasswd
-
-- Create a local `htpasswd` file with your usernames and passwords. You can generate the hashes from the command-line:
-
-```
-$ htpasswd -nB username
-New password: **********
-Re-type new password: **********
-username:$2a$08$eTTe9DM5N0w50CxL5OL0D.ToMtpAuip/4TCSWCSDJddoIW9gaQIym
-```
-
-- Encrypt your `htpasswd` file using KMS again
-
-```bash
-aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat htpasswd)" --query CiphertextBlob --output text
 ```
 
 ## Deployment
@@ -142,32 +138,35 @@ It should contain the following info - minus the comments:
 You can then deploy the full stack using:
 
 ```bash
-export AWS_PROFILE="your-profile"
-export AWS_REGION="ap-southeast-2"
-
 # name of an S3 bucket for storing the Lambda code
-./deploy my-bucket
+./deploy awspics-lambda
 ```
 
-The output should end with the AWS API Gateway endpoint:
+## Miscellaneous
 
-```
-Endpoint URL: https://0000000000.execute-api.ap-southeast-2.amazonaws.com/Prod/login"
-```
+This project only works as-is if everything is set up in the `us-east-1` AWS
+region, because CloudFormation only supports SSL certificates from that region.
+It's not too difficult to adapt this to work in another region, but you can't
+rely on the SSL certificate being created in CloudFormation. Created it manually
+(using either the AWS Console or the CLI) and reference it in the
+`WebDistribution` by its ARN explicitly rather than the `!Ref SSLCert`
+reference.
 
-Take note of that URL, and test it out!
+## Credits
 
-```bash
-# with a HTTP Form payload
-curl -X POST -d "username=hello&password=world" -H "Content-Type: x-www-form-encoded" -i "https://0000000000.execute-api.ap-southeast-2.amazonaws.com/Prod/login"
+This project is mostly a compilation from multiple existing projects out there.
 
-# with a JSON payload
-curl -X POST -d "{\"username\":\"hello\", \"password\":\"world\"}" -H "Content-Type: application/json" -i "https://0000000000.execute-api.ap-southeast-2.amazonaws.com/Prod/login"
-```
+* [Multiverse HTML template](https://html5up.net/multiverse)
+* [Lens HTML template](https://html5up.net/lens)
+* [Log In HTML template](https://codepen.io/boudra/pen/YXzLBN)
+* [Lazy Load Javascript](https://www.appelsiini.net/projects/lazyload)
+* [Lambda Cloudfront Cookies](https://github.com/thumbsup/lambda-cloudfront-cookies)
+* [Lambda as a Cloudfront Origin](https://www.codeengine.com/articles/process-form-aws-api-gateway-lambda/)
+* [Put S3 behind Cloudfront](https://learnetto.com/blog/tutorial-how-to-use-amazon-s3-and-cloudfront-cdn-to-serve-images-fast-and-cheap)
+* [Restrict S3 to only Cloudfront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html)
+* [Lambda with S3 tutorial](https://docs.aws.amazon.com/lambda/latest/dg/with-s3-example.html)
+* [Generating Cloudfront Key Pair](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html)
 
-Final steps:
+## License
 
-- optionally setup CloudFront in front of this URL too, so you can use a custom domain like `https://website.com/login`
-- once everything is working, change your CloudFront distribution to require signed cookies
-and it will return `HTTP 403` for users who aren't logged in
-- setup CloudFront to serve a nice login page for `403` errors, or use an existing page from your website to trigger the Lambda function
+AWSPics is MIT licensed.
