@@ -6,6 +6,8 @@
 **Example:** <https://v2.awspics.net>  
 **Credentials:** "username" / "password"
 
+![](assets/awspics.gif)
+
 ## Goals
 
 Host a self-contained, declarative infrastructure, password-protected,
