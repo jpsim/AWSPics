@@ -1,8 +1,35 @@
 # AWSPics
 
-> An AWS CloudFormation stack to run a serverless password-protected photo gallery
+> An AWS CloudFormation stack to run a serverless password-protected photo
+  gallery
 
-## How it works
+## Goals
+
+Host a self-contained, password-protected, data-driven static photo gallery to
+share personal pictures with friends and family, without needing to run,
+maintain (or pay for) servers.
+
+## Architecture
+
+![](assets/architecture.png)
+
+There are 7 main components:
+
+1. **CloudFront with restricted bucket access** to prevent unauthenticated
+   access to the site or its pictures.
+2. **Login lambda function** to validate authentication and sign cookies to
+   allow access to restricted buckets.
+3. **Source S3 bucket** to store original pictures and metadata driving the
+   site.
+4. **Resized S3 bucket** to store resized version of the original pictures.
+5. **Web S3 bucket** to store the static website generated from the data in the
+   source bucket.
+6. **Resize lambda function** to automatically resize images added to the source
+   S3 bucket and store them in the resized S3 bucket.
+7. **Site builder lambda function** to automatically rebuild the static website
+   when changes are made to the source S3 bucket.
+
+### Authentication
 
 The first step is to have CloudFront in front of your S3 bucket.
 
@@ -91,9 +118,6 @@ It should contain the following info - minus the comments:
   // how long the CloudFront access is granted for, in seconds
   // note that the cookies are session cookies, and will get deleted when the browser is closed anyway
   "sessionDuration=86400",
-  // if false, a successful login will return HTTP 200 (typically for Ajax calls)
-  // if true, a successful login will return HTTP 302 to the Referer (typically for form submissions)
-  "redirectOnSuccess=true",
   // KMS key ID created in step 1
   "kmsKeyId=00000000-0000-0000-0000-000000000000",
   // CloudFront key pair ID from step 2
