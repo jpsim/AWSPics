@@ -508,8 +508,12 @@ var main = (function($) { var _ = {
 				// Show first slide if xsmall isn't active or it just deactivated.
 					skel.on('-xsmall !xsmall', function() {
 
-						if (_.current === null)
-							_.switchTo(0, true);
+						if (_.current === null) {
+							var firstSlide = 0;
+							if (window.location.hash)
+								firstSlide = window.location.hash.substring(1);
+							_.switchTo(firstSlide, true);
+						}
 
 					});
 
@@ -547,6 +551,7 @@ var main = (function($) { var _ = {
 
 		// Update current.
 			_.current = index;
+			window.location.hash = '#' + index;
 
 		// Deactivate old slide (if there is one).
 			if (oldSlide) {
