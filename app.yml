@@ -52,7 +52,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      Runtime: nodejs4.3
+      Runtime: nodejs8.10
       CodeUri: dist/lambda-login.zip
       Role: !GetAtt LambdaRole.Arn
       Environment:
