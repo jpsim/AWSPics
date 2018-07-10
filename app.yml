@@ -42,6 +42,12 @@ Parameters:
     Description: htpasswd file contents encrypted with KMS
     Type: String
     NoEcho: true
+  sslCertificateArn:
+    Description: ACM Certificate ARN
+    Type: String
+
+Conditions:
+  createSSLCert: !Equals [ !Ref sslCertificateArn, "" ]
 
 Resources:
 
@@ -52,7 +58,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      Runtime: nodejs4.3
+      Runtime: nodejs8.10
       CodeUri: dist/lambda-login.zip
       Role: !GetAtt LambdaRole.Arn
       Environment:
@@ -328,6 +334,7 @@ Resources:
   #
   SSLCert:
     Type: AWS::CertificateManager::Certificate
+    Condition: createSSLCert
     Properties:
       DomainName: !Ref website
 
@@ -422,5 +429,5 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_All
         ViewerCertificate:
-          AcmCertificateArn: !Ref SSLCert
+          AcmCertificateArn: !If [ createSSLCert, !Ref SSLCert, !Ref sslCertificateArn ]
           SslSupportMethod: sni-only
