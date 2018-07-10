@@ -8,6 +8,8 @@
   "dependencies": {
     "async": "^2.1.4",
     "aws-cloudfront-sign": "^2.2.0",
-    "htpasswd-auth": "^2.0.0"
+    "content-type": "^1.0.2",
+    "htpasswd-auth": "^2.0.0",
+    "querystringparser": "^0.1.1"
   }
 }

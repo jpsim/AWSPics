@@ -131,6 +131,13 @@ It should contain the following info - minus the comments:
 
   // encrypted contents of the <htpasswd> file from step 6
   "encryptedHtpasswd=AQICAH..."
+  
+  // ------------------
+  // SSL Certificate ARN
+  // - provide this if you want to use an existing ACM Certificate.
+  // - see below in the README
+  // ------------------
+  "sslCertificateArn=arn:aws:acm:us-east-1..."
 ]
 ```
 
@@ -139,7 +146,7 @@ You can then deploy the full stack using:
 ```bash
 # name of an S3 bucket for storing the Lambda code
 # bucket will be created if it doesn't already exist
-./deploy awspics-lambda
+./deploy <unique_bucket_name_here>
 ```
 
 Any subsequent changes that you make to this code can be redeployed with the
@@ -149,6 +156,13 @@ modified resources.
 The first deployment should take about 30 minutes since there's a lot to set up.
 You'll also receive an email to approve the SSL certificate request, which you
 should complete quickly, so that the rest of the deployment can proceed.
+
+##### Note on SSL Cert
+AWS Certificate Manager now supports SSL cert verification via DNS validation.
+It is recommended that you manually request the certificate for your hosted zone and
+ chose DNS validation method for much faster validation. Then use the resulting ARN 
+ in your config. You can also leave this config key empty to create the certificate as 
+ normal.
 
 Once the initial deployment is done, you'll need to point your domain's DNS
 settings to add a CNAME to the newly created CloudFront Distribution URL, which
