@@ -54,7 +54,7 @@ exports.handler = function(event, context) {
         var image = resizePair[1];
         var width = config.split('x')[0]
         var height = config.split('x')[1]
-        var operation = im(image.buffer).resize(width, height, '^');
+        var operation = im(image.buffer).autoOrient().resize(width, height, '^');
         if (config == "360x225") {
           operation = operation.gravity('Center').crop(width, height);
         }
@@ -82,4 +82,3 @@ exports.handler = function(event, context) {
     }
   });
 };
-
