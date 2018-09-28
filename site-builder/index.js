@@ -51,7 +51,7 @@ function getAlbums(data) {
 
   var pictures = albums.map(function(album){
     return objects.filter(function(object){
-      return object.startsWith(album + "/") && object.endsWith('.jpg');
+      return object.startsWith(album + "/") && (object.toLowerCase().endsWith('.jpg') || object.toLowerCase().endsWith('.png'));
     });
   });
 
