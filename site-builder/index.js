@@ -198,28 +198,43 @@ function getAlbumMetadata(album, cb) {
 
 exports.handler = function(event, context) {
   // List all bucket objects
-  s3.listObjectsV2({Bucket: process.env.ORIGINAL_BUCKET}, function(err, data) {
-    // Handle error
-    if (err) {
-      console.log(err, err.stack);
-      return;
-    }
+  var params = {
+    Bucket: process.env.ORIGINAL_BUCKET
+  };
+  var allContents = [];
+  listAllContents();
+  function listAllContents() {
+    s3.listObjectsV2(params, function (err, data) {
+      if (err) {
+        console.log(err, err.stack); // an error occurred
+      } else {
+        var contents = data.Contents;
+        contents.forEach(function (content) {
+          allContents.push(content);
+        });
 
-    // Parse albums
-    var albumsAndPictures = getAlbums(data);
+        if (data.IsTruncated) {
+          params.ContinuationToken = data.NextContinuationToken;
+          listAllContents();
+        }
 
-    // Get metadata for all albums
-    async.map(albumsAndPictures.albums, getAlbumMetadata, function(err, metadata) {
-      // Upload homepage site
-      uploadHomepageSite(albumsAndPictures.albums, albumsAndPictures.pictures, metadata);
+        // Parse albums
+        var albumsAndPictures = getAlbums(allContents);
 
-      // Upload album sites
-      for (var i = albumsAndPictures.albums.length - 1; i >= 0; i--) {
-        uploadAlbumSite(albumsAndPictures.albums[i], albumsAndPictures.pictures[i], metadata[i]);
+        // Get metadata for all albums
+        async.map(albumsAndPictures.albums, getAlbumMetadata, function(err, metadata) {
+          // Upload homepage site
+          uploadHomepageSite(albumsAndPictures.albums, albumsAndPictures.pictures, metadata);
+
+          // Upload album sites
+          for (var i = albumsAndPictures.albums.length - 1; i >= 0; i--) {
+            uploadAlbumSite(albumsAndPictures.albums[i], albumsAndPictures.pictures[i], metadata[i]);
+          }
+
+          // Invalidate CloudFront
+          invalidateCloudFront();
+        });
       }
-
-      // Invalidate CloudFront
-      invalidateCloudFront();
     });
-  });
+  }
 };
