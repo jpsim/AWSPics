@@ -40,7 +40,7 @@ function folderName(path) {
 }
 
 function getAlbums(data) {
-  var objects = data.Contents.sort(function(a,b){
+  var objects = data.sort(function(a,b){
     return b.LastModified - a.LastModified;
   }).map(stripPrefix);
   var albums = objects.map(folderName);
