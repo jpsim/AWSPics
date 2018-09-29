@@ -40,7 +40,7 @@ function folderName(path) {
 }
 
 function getAlbums(data) {
-  var objects = data.Contents.sort(function(a,b){
+  var objects = data.sort(function(a,b){
     return b.LastModified - a.LastModified;
   }).map(stripPrefix);
   var albums = objects.map(folderName);
@@ -51,7 +51,7 @@ function getAlbums(data) {
 
   var pictures = albums.map(function(album){
     return objects.filter(function(object){
-      return object.startsWith(album + "/") && object.endsWith('.jpg');
+      return object.startsWith(album + "/") && (object.toLowerCase().endsWith('.jpg') || object.toLowerCase().endsWith('.png'));
     });
   });
 
