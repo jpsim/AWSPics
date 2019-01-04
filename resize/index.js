@@ -2,7 +2,7 @@ var async = require("async");
 var AWS = require("aws-sdk");
 
 var im = require("gm").subClass({imageMagick: true});
-var s3 = new AWS.S3();
+var s3 = new AWS.S3({signatureVersion: 'v4'});
 
 function getImageType(objectContentType) {
   if (objectContentType === "image/jpeg") {

@@ -1,5 +1,5 @@
 var AWS = require("aws-sdk");
-var s3 = new AWS.S3();
+var s3 = new AWS.S3({signatureVersion: 'v4'});
 var cloudfront = new AWS.CloudFront();
 
 var async = require('async');
