@@ -342,6 +342,7 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        HttpVersion: http2
         Aliases:
           - !Ref website
         Origins:
@@ -427,4 +428,5 @@ Resources:
         PriceClass: PriceClass_All
         ViewerCertificate:
           AcmCertificateArn: !If [ createSSLCert, !Ref SSLCert, !Ref sslCertificateArn ]
-          SslSupportMethod: sni-only
+          SslSupportMethod: 'sni-only'
+          MinimumProtocolVersion: 'TLSv1.1_2016'
