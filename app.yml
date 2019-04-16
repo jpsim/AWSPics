@@ -385,14 +385,14 @@ Resources:
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/resized/*'
             ForwardedValues:
-              QueryString: 'false'
+              QueryString: false
           - TargetOriginId: S3-SourceBucket
             TrustedSigners:
               - self
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/original/*'
             ForwardedValues:
-              QueryString: 'false'
+              QueryString: false
           - TargetOriginId: Custom-LoginAPI
             ViewerProtocolPolicy: https-only
             PathPattern: 'Prod/*'
@@ -405,13 +405,13 @@ Resources:
               - PUT
               - PATCH
             ForwardedValues:
-              QueryString: 'false'
+              QueryString: false
               Headers:
                 - Accept
                 - Authorization
                 - Content-Type
                 - Referer
-        Enabled: 'true'
+        Enabled: true
         DefaultRootObject: index.html
         CustomErrorResponses:
           - ErrorCode: 403
@@ -425,7 +425,7 @@ Resources:
           TrustedSigners:
             - self
           ForwardedValues:
-            QueryString: 'false'
+            QueryString: false
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_All
         ViewerCertificate:
