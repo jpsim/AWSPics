@@ -249,7 +249,6 @@ Resources:
             Function: !GetAtt ResizeFunction.Arn
   SourceBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    DependsOn: SourceBucket
     Properties:
       Bucket: !Ref SourceBucket
       PolicyDocument:
@@ -288,7 +287,6 @@ Resources:
             Function: !GetAtt SiteBuilderFunction.Arn
   ResizedBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    DependsOn: ResizedBucket
     Properties:
       Bucket: !Ref ResizedBucket
       PolicyDocument:
@@ -313,7 +311,6 @@ Resources:
       BucketName: !Ref webBucket
   WebBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    DependsOn: WebBucket
     Properties:
       Bucket: !Ref WebBucket
       PolicyDocument:
@@ -345,6 +342,7 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        HttpVersion: http2
         Aliases:
           - !Ref website
         Origins:
@@ -385,14 +383,14 @@ Resources:
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/resized/*'
             ForwardedValues:
-              QueryString: 'false'
+              QueryString: false
           - TargetOriginId: S3-SourceBucket
             TrustedSigners:
               - self
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/original/*'
             ForwardedValues:
-              QueryString: 'false'
+              QueryString: false
           - TargetOriginId: Custom-LoginAPI
             ViewerProtocolPolicy: https-only
             PathPattern: 'Prod/*'
@@ -405,13 +403,13 @@ Resources:
               - PUT
               - PATCH
             ForwardedValues:
-              QueryString: 'false'
+              QueryString: false
               Headers:
                 - Accept
                 - Authorization
                 - Content-Type
                 - Referer
-        Enabled: 'true'
+        Enabled: true
         DefaultRootObject: index.html
         CustomErrorResponses:
           - ErrorCode: 403
@@ -425,9 +423,10 @@ Resources:
           TrustedSigners:
             - self
           ForwardedValues:
-            QueryString: 'false'
+            QueryString: false
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_All
         ViewerCertificate:
           AcmCertificateArn: !If [ createSSLCert, !Ref SSLCert, !Ref sslCertificateArn ]
-          SslSupportMethod: sni-only
+          SslSupportMethod: 'sni-only'
+          MinimumProtocolVersion: 'TLSv1.1_2016'
