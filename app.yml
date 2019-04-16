@@ -249,7 +249,6 @@ Resources:
             Function: !GetAtt ResizeFunction.Arn
   SourceBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    DependsOn: SourceBucket
     Properties:
       Bucket: !Ref SourceBucket
       PolicyDocument:
@@ -288,7 +287,6 @@ Resources:
             Function: !GetAtt SiteBuilderFunction.Arn
   ResizedBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    DependsOn: ResizedBucket
     Properties:
       Bucket: !Ref ResizedBucket
       PolicyDocument:
@@ -313,7 +311,6 @@ Resources:
       BucketName: !Ref webBucket
   WebBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    DependsOn: WebBucket
     Properties:
       Bucket: !Ref WebBucket
       PolicyDocument:
