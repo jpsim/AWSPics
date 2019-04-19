@@ -81,7 +81,8 @@ function uploadHomepageSite(albums, pictures, metadata) {
                           "\t\t\t\t\t\t</article>\n";
         }
         body = body.toString().replace(/\{title\}/g, process.env.WEBSITE_TITLE)
-                              .replace(/\{pictures\}/g, picturesHTML);
+                              .replace(/\{pictures\}/g, picturesHTML)
+                              .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS);
       }
 
       var options = {
@@ -130,7 +131,8 @@ function uploadAlbumSite(title, pictures, metadata) {
         body = body.toString().replace(/\{title\}/g, renderedTitle)
                               .replace(/\{comment1\}/g, comment1)
                               .replace(/\{comment2\}/g, comment2)
-                              .replace(/\{pictures\}/g, picturesHTML);
+                              .replace(/\{pictures\}/g, picturesHTML)
+                              .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS);
       }
 
       var options = {
