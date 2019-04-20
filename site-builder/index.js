@@ -39,6 +39,31 @@ function folderName(path) {
   return path.split('/')[0];
 }
 
+// Test if "googleanalytics" is empty or not
+function isEmpty(obj) {
+  for(var key in obj) {
+    if(obj.hasOwnProperty(key))
+      return false;
+  }
+  return true;
+}
+
+// Google Analytics
+ga = "<!-- Global site tag (gtag.js) - Google Analytics -->\n" +
+	"<script async src=\"https://www.googletagmanager.com/gtag/js?id={gtag}\"></script>\n" +
+	"<script>\n" +
+	"  window.dataLayer = window.dataLayer || [];\n" +
+	"  function gtag(){dataLayer.push(arguments);}\n" +
+	"  gtag('js', new Date());\n" +
+  "  gtag('config', '{gtag}');\n" +
+	"</script>\n";
+
+// Not sure where to place the below code at..
+//if(!isEmpty(ga)) {
+//  console.log("{gooogletracking}")
+//  toString().replace(\{googletracking\}/g, ga)
+//}
+  
 function getAlbums(data) {
   var objects = data.sort(function(a,b){
     return b.LastModified - a.LastModified;
@@ -82,7 +107,8 @@ function uploadHomepageSite(albums, pictures, metadata) {
         }
         body = body.toString().replace(/\{title\}/g, process.env.WEBSITE_TITLE)
                               .replace(/\{pictures\}/g, picturesHTML)
-                              .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS);
+                              .replace(/\{googletracking\}/g, ga) // replaced w/ google gtag code. Will this cause "{googletracking}" to be displayed if googleanalytics is empty? 
+                              .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS); // replaced w/ google tracking id
       }
 
       var options = {
@@ -132,7 +158,8 @@ function uploadAlbumSite(title, pictures, metadata) {
                               .replace(/\{comment1\}/g, comment1)
                               .replace(/\{comment2\}/g, comment2)
                               .replace(/\{pictures\}/g, picturesHTML)
-                              .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS);
+                              .replace(/\{googletracking\}/g, ga) // replaced w/ google gtag code
+                              .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS); // replaced w/ google tracking id
       }
 
       var options = {
