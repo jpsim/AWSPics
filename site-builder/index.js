@@ -39,7 +39,7 @@ function folderName(path) {
   return path.split('/')[0];
 }
 
-// Test if "googleanalytics" is empty or not
+// Test if object is empty or not
 function isEmpty(obj) {
   for(var key in obj) {
     if(obj.hasOwnProperty(key))
@@ -48,8 +48,11 @@ function isEmpty(obj) {
   return true;
 }
 
-// Google Analytics
-ga = "<!-- Global site tag (gtag.js) - Google Analytics -->\n" +
+// This may not be needed atm
+//var gtid = process.env.GOOGLEANALYTICS
+
+// Google Analytics code
+var ga = "<!-- Global site tag (gtag.js) - Google Analytics -->\n" +
 	"<script async src=\"https://www.googletagmanager.com/gtag/js?id={gtag}\"></script>\n" +
 	"<script>\n" +
 	"  window.dataLayer = window.dataLayer || [];\n" +
@@ -58,12 +61,6 @@ ga = "<!-- Global site tag (gtag.js) - Google Analytics -->\n" +
   "  gtag('config', '{gtag}');\n" +
 	"</script>\n";
 
-// Not sure where to place the below code at..
-//if(!isEmpty(ga)) {
-//  console.log("{gooogletracking}")
-//  toString().replace(\{googletracking\}/g, ga)
-//}
-  
 function getAlbums(data) {
   var objects = data.sort(function(a,b){
     return b.LastModified - a.LastModified;
@@ -106,9 +103,16 @@ function uploadHomepageSite(albums, pictures, metadata) {
                           "\t\t\t\t\t\t</article>\n";
         }
         body = body.toString().replace(/\{title\}/g, process.env.WEBSITE_TITLE)
-                              .replace(/\{pictures\}/g, picturesHTML)
-                              .replace(/\{googletracking\}/g, ga) // replaced w/ google gtag code. Will this cause "{googletracking}" to be displayed if googleanalytics is empty? 
-                              .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS); // replaced w/ google tracking id
+                              .replace(/\{pictures\}/g, picturesHTML);
+                              //.replace(/\{googletracking\}/g, ga) // replaced w/ google gtag code. Will this cause "{googletracking}" to be displayed if googleanalytics is empty? 
+                              //.replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS); // replaced w/ google tracking id
+        // Test if "googleanalytics" is empty or not -- if this works, then will clean up code and merge this to code above
+        if (!isEmpty(process.env.GOOGLEANALYTICS)) { // if not empty, replace place holder w/ Google Analytics code, and supplied tracking id
+          body = body.toString().replace(/\{googletracking\}/g, ga)
+                                .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS);
+        } else { // if googleanalytics is empty remove place holder
+          body = body.toString().replace('{googletracking}', '');
+        }
       }
 
       var options = {
@@ -157,9 +161,16 @@ function uploadAlbumSite(title, pictures, metadata) {
         body = body.toString().replace(/\{title\}/g, renderedTitle)
                               .replace(/\{comment1\}/g, comment1)
                               .replace(/\{comment2\}/g, comment2)
-                              .replace(/\{pictures\}/g, picturesHTML)
-                              .replace(/\{googletracking\}/g, ga) // replaced w/ google gtag code
-                              .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS); // replaced w/ google tracking id
+                              .replace(/\{pictures\}/g, picturesHTML);
+                              //.replace(/\{googletracking\}/g, ga) // replaced w/ google gtag code
+                              //.replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS); // replaced w/ google tracking id
+        // Test if "googleanalytics" is empty or not -- if this works, then will clean up code and merge this to code above
+        if (!isEmpty(process.env.GOOGLEANALYTICS)) { // if not empty, replace place holder w/ Google Analytics code, and supplied tracking id 
+          body = body.toString().replace(/\{googletracking\}/g, ga)
+                                .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS);
+        } else { // if googleanalytics is empty remove place holder
+          body = body.toString().replace('{googletracking}', '');
+        }
       }
 
       var options = {
