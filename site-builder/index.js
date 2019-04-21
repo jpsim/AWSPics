@@ -48,18 +48,15 @@ function isEmpty(obj) {
   return true;
 }
 
-// This may not be needed atm
-//var gtid = process.env.GOOGLEANALYTICS
-
-// Google Analytics code
+// Google Analytics gtag code
 var ga = "<!-- Global site tag (gtag.js) - Google Analytics -->\n" +
-	"<script async src=\"https://www.googletagmanager.com/gtag/js?id={gtag}\"></script>\n" +
-	"<script>\n" +
-	"  window.dataLayer = window.dataLayer || [];\n" +
-	"  function gtag(){dataLayer.push(arguments);}\n" +
-	"  gtag('js', new Date());\n" +
-  "  gtag('config', '{gtag}');\n" +
-	"</script>\n";
+	"\t\t<script async src=\"https://www.googletagmanager.com/gtag/js?id={gtag}\"></script>\n" +
+	"\t\t<script>\n" +
+	"\t\t  window.dataLayer = window.dataLayer || [];\n" +
+	"\t\t  function gtag(){dataLayer.push(arguments);}\n" +
+	"\t\t  gtag('js', new Date());\n" +
+  "\t\t  gtag('config', '{gtag}');\n" +
+	"\t\t</script>";
 
 function getAlbums(data) {
   var objects = data.sort(function(a,b){
@@ -89,7 +86,15 @@ function uploadHomepageSite(albums, pictures, metadata) {
       var body = fs.readFileSync(f);
 
       if (path.basename(f) == 'error.html') {
-        body = body.toString().replace(/\{website\}/g, process.env.WEBSITE);
+        // Test if "googleanalytics" is set or not
+        if (!isEmpty(process.env.GOOGLEANALYTICS)) {
+          body = body.toString().replace(/\{website\}/g, process.env.WEBSITE)
+                                .replace(/\{googletracking\}/g, ga)
+                                .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS);
+        } else {
+          body = body.toString().replace(/\{website\}/g, process.env.WEBSITE)
+                                .replace('{googletracking}', '');
+        }
       } else if (path.basename(f) == 'index.html') {
         var picturesHTML = '';
         for (var i = 0; i < albums.length; i++) {
@@ -100,18 +105,18 @@ function uploadHomepageSite(albums, pictures, metadata) {
           picturesHTML += "\t\t\t\t\t\t<article class=\"thumb\">\n" +
                           "\t\t\t\t\t\t\t<a href=\"" + albums[i] + "/index.html\" class=\"image\"><img src=\"/pics/resized/1200x750/" + pictures[i][0] + "\" alt=\"\" /></a>\n" +
                           "\t\t\t\t\t\t\t<h2>" + albumTitle + "</h2>\n" +
-                          "\t\t\t\t\t\t</article>\n";
+                          "\t\t\t\t\t\t</article>";
         }
-        body = body.toString().replace(/\{title\}/g, process.env.WEBSITE_TITLE)
-                              .replace(/\{pictures\}/g, picturesHTML);
-                              //.replace(/\{googletracking\}/g, ga) // replaced w/ google gtag code. Will this cause "{googletracking}" to be displayed if googleanalytics is empty? 
-                              //.replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS); // replaced w/ google tracking id
-        // Test if "googleanalytics" is empty or not -- if this works, then will clean up code and merge this to code above
-        if (!isEmpty(process.env.GOOGLEANALYTICS)) { // if not empty, replace place holder w/ Google Analytics code, and supplied tracking id
-          body = body.toString().replace(/\{googletracking\}/g, ga)
+        // Test if "googleanalytics" is set or not
+        if (!isEmpty(process.env.GOOGLEANALYTICS)) {
+          body = body.toString().replace(/\{title\}/g, process.env.WEBSITE_TITLE)
+                                .replace(/\{pictures\}/g, picturesHTML)
+                                .replace(/\{googletracking\}/g, ga)
                                 .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS);
-        } else { // if googleanalytics is empty remove place holder
-          body = body.toString().replace('{googletracking}', '');
+        } else {
+          body = body.toString().replace(/\{title\}/g, process.env.WEBSITE_TITLE)
+                                .replace(/\{pictures\}/g, picturesHTML)
+                                .replace('{googletracking}', '');
         }
       }
 
@@ -158,18 +163,20 @@ function uploadAlbumSite(title, pictures, metadata) {
                           "<p><a href=\"/pics/original/" + pictures[i] + "\" download>High Resolution Download</a></p>\n" +
                           "\t\t\t\t\t\t</article>";
         }
-        body = body.toString().replace(/\{title\}/g, renderedTitle)
-                              .replace(/\{comment1\}/g, comment1)
-                              .replace(/\{comment2\}/g, comment2)
-                              .replace(/\{pictures\}/g, picturesHTML);
-                              //.replace(/\{googletracking\}/g, ga) // replaced w/ google gtag code
-                              //.replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS); // replaced w/ google tracking id
-        // Test if "googleanalytics" is empty or not -- if this works, then will clean up code and merge this to code above
-        if (!isEmpty(process.env.GOOGLEANALYTICS)) { // if not empty, replace place holder w/ Google Analytics code, and supplied tracking id 
-          body = body.toString().replace(/\{googletracking\}/g, ga)
+        // Test if "googleanalytics" is set or not
+        if (!isEmpty(process.env.GOOGLEANALYTICS)) {
+          body = body.toString().replace(/\{title\}/g, renderedTitle)
+                                .replace(/\{comment1\}/g, comment1)
+                                .replace(/\{comment2\}/g, comment2)
+                                .replace(/\{pictures\}/g, picturesHTML)
+                                .replace(/\{googletracking\}/g, ga)
                                 .replace(/\{gtag\}/g, process.env.GOOGLEANALYTICS);
-        } else { // if googleanalytics is empty remove place holder
-          body = body.toString().replace('{googletracking}', '');
+        } else {
+          body = body.toString().replace(/\{title\}/g, renderedTitle)
+                                .replace(/\{comment1\}/g, comment1)
+                                .replace(/\{comment2\}/g, comment2)
+                                .replace(/\{pictures\}/g, picturesHTML)
+                                .replace('{googletracking}', '');
         }
       }
 
