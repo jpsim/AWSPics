@@ -62,7 +62,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       CodeUri: dist/lambda-login.zip
       Role: !GetAtt LambdaRole.Arn
       Environment:
@@ -113,7 +113,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       CodeUri: dist/lambda-resize.zip
       Role: !GetAtt ResizeLambdaRole.Arn
       Environment:
@@ -164,7 +164,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
-      Runtime: nodejs8.10
+      Runtime: nodejs10.x
       CodeUri: dist/lambda-site-builder.zip
       Environment:
         Variables:
