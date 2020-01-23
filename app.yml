@@ -48,6 +48,9 @@ Parameters:
   googleanalytics:
     Description: Google tracking id (gtag)
     Type: String
+  ImageMagickLayer:
+    Description: Lambda layer for nodejs10.x for imagemagick. Deploy one from here https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer 
+    Type: String
 
 Conditions:
   createSSLCert: !Equals [ !Ref sslCertificateArn, "" ]
@@ -115,6 +118,8 @@ Resources:
       Handler: index.handler
       Runtime: nodejs10.x
       CodeUri: dist/lambda-resize.zip
+      Layers:
+        - !Ref ImageMagickLayer
       Role: !GetAtt ResizeLambdaRole.Arn
       Environment:
         Variables:

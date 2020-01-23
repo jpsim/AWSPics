@@ -84,6 +84,19 @@ A video walkthrough [is available on YouTube](https://youtu.be/010AGcY4uoE).
                   "CallerReference=$(cat /dev/urandom | base64 | base64 | head -c 14),Comment=AWSPics OAI"
    ```
 
+8. Create Image Magick Lambda Layer for Amazon Linux 2 AMIs.
+
+   While logged into AWS, go to this link:
+   <https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer>.
+   Click Deploy (currently the orange button on the upper left).
+
+   Then click on your Lambda - Layers and you will see a version ARN that looks like: 
+
+   Name          Version  Version ARN
+   image-magick  1        arn:aws:lambda:us-east-1:000000000000:layer:image-magick:1
+   
+   Hold on to that ARN for later.
+
 ## Deployment
 
 Create a configuration file called `dist/config.json`, based on
@@ -121,6 +134,13 @@ It should contain the following info - minus the comments:
   // CloudFront key pair ID from step 3
   // This is not sensitive, and will be one of the cookie values
   "cloudFrontKeypairId=APK...",
+  // ------------------
+  // Image Magick Lambda Layer ARN
+  // - this is needed for ImageMagick to resize images in Node.js 10.x
+  // - from step 8 above
+  // - context below in README
+  // ------------------
+  "ImageMagickLayer=arn:aws:lambda:us-east-1:........:layer:image-magick:...",
 
   // ------------------
   // ENCRYPTED SETTINGS
@@ -130,7 +150,7 @@ It should contain the following info - minus the comments:
   "encryptedCloudFrontPrivateKey=AQICAH...",
 
   // encrypted contents of the <htpasswd> file from step 6
-  "encryptedHtpasswd=AQICAH..."
+  "encryptedHtpasswd=AQICAH...",
   
   // ------------------
   // SSL Certificate ARN
@@ -138,6 +158,7 @@ It should contain the following info - minus the comments:
   // - see below in the README
   // ------------------
   "sslCertificateArn=arn:aws:acm:us-east-1..."
+
 ]
 ```
 
@@ -157,12 +178,16 @@ The first deployment should take about 30 minutes since there's a lot to set up.
 You'll also receive an email to approve the SSL certificate request, which you
 should complete quickly, so that the rest of the deployment can proceed.
 
+### Note on ImageMagick Layer for Lambda
+When Amazon deprecated Node.js 8.10, they removed ImageMagick from the Amazon Linux 2 AMIs that are required to run Node.js 10.x. Again, ImageMagick is no longer bundled with the Node.js 10.x runtime. This fix may also help with running on Node.js 12.x in the future. This provides a Lambda Layer (essentially a library) for your Lambda function that makes the existing code work with Node.js 10.x. 
+
+
 ##### Note on SSL Cert
 AWS Certificate Manager now supports SSL cert verification via DNS validation.
 It is recommended that you manually request the certificate for your hosted zone and
- chose DNS validation method for much faster validation. Then use the resulting ARN 
- in your config. You can also leave this config key empty to create the certificate as 
- normal.
+chose DNS validation method for much faster validation. Then use the resulting ARN 
+in your config. You can also leave this config key empty to create the certificate as 
+normal.
 
 Once the initial deployment is done, you'll need to point your domain's DNS
 settings to add a CNAME to the newly created CloudFront Distribution URL, which
@@ -220,6 +245,10 @@ rely on the SSL certificate being created in CloudFormation. Create it manually
 `WebDistribution` by its ARN explicitly rather than the `!Ref SSLCert`
 reference.
 
+If the project deploys and the login is entered correctly, but you are receiving access 
+denied messages, review your DNS settings. You just need a single DNS A record 
+pointing to the CloudFront Alias for your domain.
+
 ## Credits
 
 This project is mostly a compilation from multiple existing projects out there.
@@ -234,6 +263,13 @@ This project is mostly a compilation from multiple existing projects out there.
 * [Restrict S3 to only Cloudfront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html)
 * [Lambda with S3 tutorial](https://docs.aws.amazon.com/lambda/latest/dg/with-s3-example.html)
 * [Generating Cloudfront Key Pair](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html)
+
+Credits for update to nodejs 10.x and ImageMagick Layer:
+* [NPM Mime Package Update v2](https://www.npmjs.com/package/mime)
+* [ImageMagick after execution environment updates on AWS Forums](https://forums.aws.amazon.com/thread.jspa?messageID=906619&tstart=0)
+* [ImageMagick Lambda Layer for Amazon Linux 2 AMIs](https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer)
+* [image-magick-lambda-layer — version 1.0.0](https://github.com/serverlesspub/imagemagick-aws-lambda-2)
+
 
 ## License
 

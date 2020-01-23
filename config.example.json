@@ -7,6 +7,7 @@
   "originAccessIdentity=EJG...",
   "sessionDuration=86400",
   "googleanalytics=",
+  "ImageMagickLayer=arn:aws:lambda:us-east-1:........:layer:image-magick:...",
   "kmsKeyId=00000000-0000-0000-0000-000000000000",
   "cloudFrontKeypairId=APK...",
   "encryptedCloudFrontPrivateKey=AQICAH...",
