@@ -136,7 +136,7 @@ Resources:
         Variables:
           RESIZED_BUCKET: !Ref resizedBucket
       Timeout: 30
-      MemorySize: 960
+      MemorySize: 1024
 
   #
   # Resize IAM role so the Lambda can log (CloudWatch) and read/write S3 objects
@@ -215,7 +215,7 @@ Resources:
           WEBSITE: !Ref website
           GOOGLEANALYTICS: !Ref googleanalytics
       Role: !GetAtt SiteBuilderLambdaRole.Arn
-      Timeout: 300
+      Timeout: 900
       MemorySize: 3008
 
   #
@@ -288,11 +288,6 @@ Resources:
     DependsOn: ResizeInvokePermission
     Properties:
       BucketName: !Ref sourceBucket
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls       : true
-        BlockPublicPolicy     : true
-        IgnorePublicAcls      : true
-        RestrictPublicBuckets : true
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
@@ -337,47 +332,20 @@ Resources:
               StringNotEquals:
                 "s3:x-amz-server-side-encryption":
                   - "AES256"
-                  #- "aws:kms"
     DependsOn: SourceBucket
 
 
   #
   # Resized Bucket
   #
-  
-
-
-  # THIS WAS THE OLD EXPEN$IVE WAY OF TRIGGERING THE SITEBUILDER
-  # SiteBuilderInvokePermission:
-  #   Type: AWS::Lambda::Permission
-  #   Properties:
-  #     Action: lambda:InvokeFunction
-  #     FunctionName: !Ref SiteBuilderFunction
-  #     Principal: s3.amazonaws.com
-  #     SourceAccount: !Ref AWS::AccountId
-  #     SourceArn: !Sub
-  #       - arn:aws:s3:::${resizedBucket}
-  #       - resizedBucket: !Ref resizedBucket
-
   ResizedBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref resizedBucket
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls       : true
-        BlockPublicPolicy     : true
-        IgnorePublicAcls      : true
-        RestrictPublicBuckets : true
       BucketEncryption: 
         ServerSideEncryptionConfiguration: 
         - ServerSideEncryptionByDefault:
             SSEAlgorithm: AES256
-
-      # THIS WAS THE OLD EXPEN$IVE WAY OF TRIGGERING THE SITEBUILDER  
-      # NotificationConfiguration:
-      #   LambdaConfigurations:
-      #     - Event: 's3:ObjectCreated:*'
-      #       Function: !GetAtt SiteBuilderFunction.Arn
 
   ResizedBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -414,7 +382,6 @@ Resources:
               StringNotEquals:
                 "s3:x-amz-server-side-encryption":
                   - "AES256"
-                  #- "aws:kms"
     DependsOn: ResizedBucket
 
   #
