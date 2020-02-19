@@ -49,7 +49,18 @@ Parameters:
     Description: Google tracking id (gtag)
     Type: String
   ImageMagickLayer:
-    Description: Lambda layer for nodejs10.x for imagemagick. Deploy one from here https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer 
+    Description: layer for nodejs10.x and nodejs12.x for imagemagick here https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer 
+    Type: String
+  LambdaRate:
+    Description: The rate (frequency) that determines when CloudWatch Events runs the rule that triggers the SiteBuilderFunction.
+    Default: rate(365 days)
+    AllowedValues:
+      - rate(8 hours)
+      - rate(1 day)
+      - rate(7 days)
+      - rate(30 days)
+      - rate(90 days)
+      - rate(365 days)
     Type: String
 
 Conditions:
@@ -125,7 +136,7 @@ Resources:
         Variables:
           RESIZED_BUCKET: !Ref resizedBucket
       Timeout: 30
-      MemorySize: 1024
+      MemorySize: 960
 
   #
   # Resize IAM role so the Lambda can log (CloudWatch) and read/write S3 objects
@@ -163,6 +174,29 @@ Resources:
                 Action: ['s3:PutObject']
 
   #
+  # CloudWatch Events Rule to run sitebuilder at some frequency
+  #
+  LambdaSchedule:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: A schedule for the Lambda function..
+      ScheduleExpression: !Ref LambdaRate
+      State: ENABLED
+      Targets:
+        - Arn: !Sub ${SiteBuilderFunction.Arn}
+          Id: LambdaSchedule
+  #        
+  # Permission to invoke a lambda function with the CloudWatch Event
+  #
+  LambdaSchedulePermission:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref SiteBuilderFunction
+      Principal: 'events.amazonaws.com'
+      SourceArn: !Sub ${LambdaSchedule.Arn}
+
+  #
   # Site Builder Lambda function definition
   #
   SiteBuilderFunction:
@@ -181,8 +215,8 @@ Resources:
           WEBSITE: !Ref website
           GOOGLEANALYTICS: !Ref googleanalytics
       Role: !GetAtt SiteBuilderLambdaRole.Arn
-      Timeout: 30
-      MemorySize: 1024
+      Timeout: 300
+      MemorySize: 3008
 
   #
   # Site Builder IAM role so the Lambda can log (CloudWatch) and read/write S3 objects
@@ -248,15 +282,26 @@ Resources:
       SourceArn: !Sub
         - arn:aws:s3:::${sourceBucket}
         - sourceBucket: !Ref sourceBucket
+
   SourceBucket:
     Type: AWS::S3::Bucket
     DependsOn: ResizeInvokePermission
     Properties:
       BucketName: !Ref sourceBucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls       : true
+        BlockPublicPolicy     : true
+        IgnorePublicAcls      : true
+        RestrictPublicBuckets : true
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
             Function: !GetAtt ResizeFunction.Arn
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+
   SourceBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -274,27 +319,66 @@ Resources:
                 - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}
                 - id: !Ref originAccessIdentity
 
+  ForceEncryption:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref sourceBucket
+      PolicyDocument:
+        Version: "2008-10-17"
+        Statement:
+          - Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - s3:PutObject
+            Resource:
+              - !Join ["", ["arn:aws:s3:::", !Ref sourceBucket, "/*"]]
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption":
+                  - "AES256"
+                  #- "aws:kms"
+    DependsOn: SourceBucket
+
+
   #
   # Resized Bucket
   #
-  SiteBuilderInvokePermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref SiteBuilderFunction
-      Principal: s3.amazonaws.com
-      SourceAccount: !Ref AWS::AccountId
-      SourceArn: !Sub
-        - arn:aws:s3:::${resizedBucket}
-        - resizedBucket: !Ref resizedBucket
+  
+
+
+  # THIS WAS THE OLD EXPEN$IVE WAY OF TRIGGERING THE SITEBUILDER
+  # SiteBuilderInvokePermission:
+  #   Type: AWS::Lambda::Permission
+  #   Properties:
+  #     Action: lambda:InvokeFunction
+  #     FunctionName: !Ref SiteBuilderFunction
+  #     Principal: s3.amazonaws.com
+  #     SourceAccount: !Ref AWS::AccountId
+  #     SourceArn: !Sub
+  #       - arn:aws:s3:::${resizedBucket}
+  #       - resizedBucket: !Ref resizedBucket
+
   ResizedBucket:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref resizedBucket
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: 's3:ObjectCreated:*'
-            Function: !GetAtt SiteBuilderFunction.Arn
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls       : true
+        BlockPublicPolicy     : true
+        IgnorePublicAcls      : true
+        RestrictPublicBuckets : true
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
+
+      # THIS WAS THE OLD EXPEN$IVE WAY OF TRIGGERING THE SITEBUILDER  
+      # NotificationConfiguration:
+      #   LambdaConfigurations:
+      #     - Event: 's3:ObjectCreated:*'
+      #       Function: !GetAtt SiteBuilderFunction.Arn
+
   ResizedBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -311,6 +395,27 @@ Resources:
               AWS: !Sub
                 - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}
                 - id: !Ref originAccessIdentity
+
+  ForceEncryption:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref resizedBucket
+      PolicyDocument:
+        Version: "2008-10-17"
+        Statement:
+          - Sid: DenyUnEncryptedObjectUploads
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - s3:PutObject
+            Resource:
+              - !Join ["", ["arn:aws:s3:::", !Ref resizedBucket, "/*"]]
+            Condition:
+              StringNotEquals:
+                "s3:x-amz-server-side-encryption":
+                  - "AES256"
+                  #- "aws:kms"
+    DependsOn: ResizedBucket
 
   #
   # Web Bucket
@@ -392,6 +497,10 @@ Resources:
               - self
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/resized/*'
+            Compress: true
+            MinTTL: 0
+            DefaultTTL: 31536000
+            MaxTTL: 31536000
             ForwardedValues:
               QueryString: false
           - TargetOriginId: S3-SourceBucket
@@ -399,6 +508,10 @@ Resources:
               - self
             ViewerProtocolPolicy: https-only
             PathPattern: 'pics/original/*'
+            Compress: true
+            MinTTL: 0
+            DefaultTTL: 31536000
+            MaxTTL: 31536000
             ForwardedValues:
               QueryString: false
           - TargetOriginId: Custom-LoginAPI
@@ -435,7 +548,7 @@ Resources:
           ForwardedValues:
             QueryString: false
           ViewerProtocolPolicy: redirect-to-https
-        PriceClass: PriceClass_All
+        PriceClass: PriceClass_100
         ViewerCertificate:
           AcmCertificateArn: !If [ createSSLCert, !Ref SSLCert, !Ref sslCertificateArn ]
           SslSupportMethod: 'sni-only'

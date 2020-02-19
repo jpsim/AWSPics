@@ -145,7 +145,7 @@ function uploadAlbumSite(title, pictures, metadata) {
       if (path.basename(f) == 'index.html') {
         // Defaults
         var renderedTitle = title,
-            comment1 = '';
+            comment1 = '',
             comment2 = '';
 
         // Metadata
