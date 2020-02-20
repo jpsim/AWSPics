@@ -124,7 +124,7 @@ function uploadHomepageSite(albums, pictures, metadata) {
         Bucket: process.env.SITE_BUCKET,
         Key: path.relative(dir, f),
         Body: body,
-        ContentType: mime.lookup(path.extname(f))
+        ContentType: mime.getType(path.extname(f))
       };
 
       s3.putObject(options, cb);
@@ -145,7 +145,7 @@ function uploadAlbumSite(title, pictures, metadata) {
       if (path.basename(f) == 'index.html') {
         // Defaults
         var renderedTitle = title,
-            comment1 = '';
+            comment1 = '',
             comment2 = '';
 
         // Metadata
@@ -184,7 +184,7 @@ function uploadAlbumSite(title, pictures, metadata) {
         Bucket: process.env.SITE_BUCKET,
         Key: title + "/" + path.relative(dir, f),
         Body: body,
-        ContentType: mime.lookup(path.extname(f))
+        ContentType: mime.getType(path.extname(f))
       };
 
       s3.putObject(options, cb);

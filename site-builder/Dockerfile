@@ -1,4 +1,4 @@
-FROM lambci/lambda:build-nodejs8.10
+FROM lambci/lambda:build-nodejs10.x
 
 # working folder
 RUN mkdir /build
