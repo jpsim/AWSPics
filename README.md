@@ -87,14 +87,16 @@ A video walkthrough [is available on YouTube](https://youtu.be/010AGcY4uoE).
 8. Create Image Magick Lambda Layer for Amazon Linux 2 AMIs.
 
    While logged into AWS, go to this link:
-   <https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer>.
+   ```
+   <https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer>
+   ```
    Click Deploy (currently the orange button on the upper left).
 
    Then click on your Lambda - Layers and you will see a version ARN that looks like: 
-
+   ```
    Name          Version  Version ARN
    image-magick  1        arn:aws:lambda:us-east-1:000000000000:layer:image-magick:1
-   
+   ```
    Hold on to that ARN for later.
 
 ## Deployment
@@ -138,7 +140,7 @@ It should contain the following info - minus the comments:
   // Image Magick Lambda Layer ARN
   // - this is needed for ImageMagick to resize images in Node.js 10.x
   // - from step 8 above
-  // - context below in README
+  // - context above in README
   // ------------------
   "ImageMagickLayer=arn:aws:lambda:us-east-1:........:layer:image-magick:...",
 
@@ -245,9 +247,40 @@ rely on the SSL certificate being created in CloudFormation. Create it manually
 `WebDistribution` by its ARN explicitly rather than the `!Ref SSLCert`
 reference.
 
+GeoRestriction is commented out in the CloudFront configuration in the app.yaml. If you are sharing
+with friends and family in a specific geographic area, this is a slight improvement to security and 
+cost reduction. The US is provided as an example, but additional countries can be added to a 
+(whitelist/blacklist) based on their two letter ISO 3166-1 alpha-2 country code.
+
+S3 Server Side AES256 encryption is enabled for the source and resized photo buckets and encrypts files 
+using the AWS S3 Master key. Each bucket is configured to force encryption of any file it receives 
+(you will need to check the upload box or specify it in the CLI when uploading photo files to the buckets) 
+and you will get access denied messages if you don't. The Resize function re-encrypts the resized photos 
+with AES256 SSE before uploading them into the resized bucket. Cloudfront with an OAI is able to access 
+files using the S3 Master Key without any issue. One cannot at this time use a KMS key for encrypting 
+bucket data to be accessed via Cloudfront without more complexity.
+
+The EventInvoke config is included for SiteBuilder to prevent it from queueing up invocations and causing 
+multiple cloudfront invalidations at the same time. If you need to run sitebuilder more frequently, adjust 
+the rate of events by editing the CloudWatch Events rule in the Management console or the app.yml file.
+
+Also, you can reduce compute costs and lock down the application several ways: 1) by manually throttling 
+the Resize Function and the SiteBuilder Function in Lambda in the Management console or 2) disabling the 
+CloudWatch Events rule that runs SiteBuilder or 3) manually disabling the trigger for a Lambda function 
+in the Management console.
+
+
+## Troubleshooting
+
 If the project deploys and the login is entered correctly, but you are receiving access 
-denied messages, review your DNS settings. You just need a single DNS A record 
-pointing to the CloudFront Alias for your domain.
+denied messages, review your DNS settings. You only need a single DNS A record 
+pointing to the CloudFront Alias for your domain, and time for it to propagate.
+
+If SiteBuilder is hanging or having trouble completing, you may need to adjust the rate limiting delay block in index.js.
+The current S3 rate limit is 3500 writes a second, and 5500 reads/sec. If you're writing 30 files per album, 
+if you have more than 116 albums, you will hit the rate limit - and SiteBuilder will just hang and you will see 
+the files as a partial listing in the web directory. 
+
 
 ## Credits
 

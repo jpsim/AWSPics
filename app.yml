@@ -136,7 +136,7 @@ Resources:
         Variables:
           RESIZED_BUCKET: !Ref resizedBucket
       Timeout: 30
-      MemorySize: 960
+      MemorySize: 1024
 
   #
   # Resize IAM role so the Lambda can log (CloudWatch) and read/write S3 objects
@@ -195,6 +195,15 @@ Resources:
       FunctionName: !Ref SiteBuilderFunction
       Principal: 'events.amazonaws.com'
       SourceArn: !Sub ${LambdaSchedule.Arn}
+
+  EventInvokeConfig:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+        FunctionName: !Ref SiteBuilderFunction
+        Qualifier: "$LATEST"
+        MaximumEventAgeInSeconds: 60
+        MaximumRetryAttempts: 0
+    DependsOn: LambdaSchedulePermission
 
   #
   # Site Builder Lambda function definition
@@ -288,15 +297,15 @@ Resources:
     DependsOn: ResizeInvokePermission
     Properties:
       BucketName: !Ref sourceBucket
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt ResizeFunction.Arn
       PublicAccessBlockConfiguration:
         BlockPublicAcls       : true
         BlockPublicPolicy     : true
         IgnorePublicAcls      : true
         RestrictPublicBuckets : true
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: 's3:ObjectCreated:*'
-            Function: !GetAtt ResizeFunction.Arn
       BucketEncryption: 
         ServerSideEncryptionConfiguration: 
           - ServerSideEncryptionByDefault:
@@ -531,9 +540,9 @@ Resources:
           AcmCertificateArn: !If [ createSSLCert, !Ref SSLCert, !Ref sslCertificateArn ]
           SslSupportMethod: 'sni-only'
           MinimumProtocolVersion: 'TLSv1.1_2016'
-        Restrictions:
-          GeoRestriction:
-            RestrictionType: 'whitelist'
-            Locations: 
-              - 'US'
+        # Restrictions:
+        #   GeoRestriction:
+        #     RestrictionType: 'whitelist'
+        #     Locations: 
+        #       - 'US'
             

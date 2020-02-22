@@ -50,13 +50,13 @@ function isEmpty(obj) {
 
 // Google Analytics gtag code
 var ga = "<!-- Global site tag (gtag.js) - Google Analytics -->\n" +
-	"\t\t<script async src=\"https://www.googletagmanager.com/gtag/js?id={gtag}\"></script>\n" +
-	"\t\t<script>\n" +
-	"\t\t  window.dataLayer = window.dataLayer || [];\n" +
-	"\t\t  function gtag(){dataLayer.push(arguments);}\n" +
-	"\t\t  gtag('js', new Date());\n" +
+  "\t\t<script async src=\"https://www.googletagmanager.com/gtag/js?id={gtag}\"></script>\n" +
+  "\t\t<script>\n" +
+  "\t\t  window.dataLayer = window.dataLayer || [];\n" +
+  "\t\t  function gtag(){dataLayer.push(arguments);}\n" +
+  "\t\t  gtag('js', new Date());\n" +
   "\t\t  gtag('config', '{gtag}');\n" +
-	"\t\t</script>";
+  "\t\t</script>";
 
 function getAlbums(data) {
   var objects = data.sort(function(a,b){
@@ -135,10 +135,23 @@ function uploadHomepageSite(albums, pictures, metadata) {
 }
 
 function uploadAlbumSite(title, pictures, metadata) {
+  console.log("Writing ALBUM " + title);
+  //this is a computationally expensive way to do a delay block - 
+  //this delay is ~100ms using processor allocated to 3008mb memory usage on a Lambda instance
+  //Surely this could be done in a more node.js way, but if you're reading this, 
+  //Lambda computational power is likely cheaper than your time.
+  var a = 0;
+  for (var j = 5*10e6; j >= 0; j--) {
+    a++;
+  }
+  //the above delay block is inserted to prevent S3 from being flooded and killing the sitebuild.
+  //This happens when you have more than 115 albums, writing about 30 files per album
+  //saturates the 3500 writes/sec current rate limit for S3, and this function 
+  //doesn't handle those rejections well & hangs without some delay block to force a rate limit.
+  //--------------------------
   var dir = 'album';
   walk(dir, function(err, files) {
     if (err) throw err;
-
     async.map(files, function(f, cb) {
       var body = fs.readFileSync(f);
 
@@ -262,25 +275,30 @@ exports.handler = function(event, context) {
 
         if (data.IsTruncated) {
           params.ContinuationToken = data.NextContinuationToken;
-          listAllContents();
+          //listAllContents();
+          console.log("S3 listing was truncated. Pausing 2 sec before continuing " + params.ContinuationToken );
+          setTimeout(listAllContents,2000); //rate limiting for reads - this is a tested safe value
+        }else{
+
+          // Parse albums
+          var albumsAndPictures = getAlbums(allContents);
+          console.log("First Album: "+albumsAndPictures.albums[albumsAndPictures.albums.length - 1]);
+          console.log("Last Album: "+albumsAndPictures.albums[0]);
+  
+          // Get metadata for all albums
+          async.map(albumsAndPictures.albums, getAlbumMetadata, function(err, metadata) {
+            // Upload homepage site
+            uploadHomepageSite(albumsAndPictures.albums, albumsAndPictures.pictures, metadata);
+  
+            // Upload album sites
+            for (var i = albumsAndPictures.albums.length - 1; i >= 0; i--) {
+              uploadAlbumSite(albumsAndPictures.albums[i], albumsAndPictures.pictures[i], metadata[i]);
+            }
+  
+            // Invalidate CloudFront
+            invalidateCloudFront();
+          });
         }
-
-        // Parse albums
-        var albumsAndPictures = getAlbums(allContents);
-
-        // Get metadata for all albums
-        async.map(albumsAndPictures.albums, getAlbumMetadata, function(err, metadata) {
-          // Upload homepage site
-          uploadHomepageSite(albumsAndPictures.albums, albumsAndPictures.pictures, metadata);
-
-          // Upload album sites
-          for (var i = albumsAndPictures.albums.length - 1; i >= 0; i--) {
-            uploadAlbumSite(albumsAndPictures.albums[i], albumsAndPictures.pictures[i], metadata[i]);
-          }
-
-          // Invalidate CloudFront
-          invalidateCloudFront();
-        });
       }
     });
   }
