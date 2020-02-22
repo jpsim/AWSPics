@@ -269,7 +269,7 @@ the Resize Function and the SiteBuilder Function in Lambda in the Management con
 CloudWatch Events rule that runs SiteBuilder or 3) manually disabling the trigger for a Lambda function 
 in the Management console.
 
-Default directory for photos is S3://BUCKET_NAME/pics/original/YOUR_ALBUMS_GO_HERE.
+Default directory for photos is S3://BUCKET_NAME/pics/original/YOUR_ALBUMS_GO_HERE
 
 
 ## Troubleshooting
