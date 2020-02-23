@@ -66,6 +66,7 @@ exports.handler = function(event, context) {
               "Bucket": process.env.RESIZED_BUCKET,
               "Key": "pics/resized/" + config + "/" + image.originalKey.replace("pics/original/", ""),
               "Body": buffer,
+              "ServerSideEncryption": "AES256",
               "ContentType": image.contentType
             }, function(err) {
               cb(err);

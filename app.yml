@@ -196,6 +196,15 @@ Resources:
       Principal: 'events.amazonaws.com'
       SourceArn: !Sub ${LambdaSchedule.Arn}
 
+  EventInvokeConfig:
+    Type: AWS::Lambda::EventInvokeConfig
+    Properties:
+        FunctionName: !Ref SiteBuilderFunction
+        Qualifier: "$LATEST"
+        MaximumEventAgeInSeconds: 60
+        MaximumRetryAttempts: 0
+    DependsOn: LambdaSchedulePermission
+
   #
   # Site Builder Lambda function definition
   #
@@ -292,10 +301,24 @@ Resources:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
             Function: !GetAtt ResizeFunction.Arn
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls       : true
+        BlockPublicPolicy     : true
+        IgnorePublicAcls      : true
+        RestrictPublicBuckets : true
       BucketEncryption: 
         ServerSideEncryptionConfiguration: 
-        - ServerSideEncryptionByDefault:
-            SSEAlgorithm: AES256
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: CheaperS3StorageIntelligentTieringBecauseCachedOnCloudfront
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+            Transition:
+              StorageClass: INTELLIGENT_TIERING
+              TransitionInDays: 30
 
   SourceBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -313,14 +336,6 @@ Resources:
               AWS: !Sub
                 - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}
                 - id: !Ref originAccessIdentity
-
-  ForceEncryption:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref sourceBucket
-      PolicyDocument:
-        Version: "2008-10-17"
-        Statement:
           - Sid: DenyUnEncryptedObjectUploads
             Effect: Deny
             Principal: "*"
@@ -334,7 +349,6 @@ Resources:
                   - "AES256"
     DependsOn: SourceBucket
 
-
   #
   # Resized Bucket
   #
@@ -342,10 +356,24 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref resizedBucket
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls       : true
+        BlockPublicPolicy     : true
+        IgnorePublicAcls      : true
+        RestrictPublicBuckets : true
       BucketEncryption: 
         ServerSideEncryptionConfiguration: 
-        - ServerSideEncryptionByDefault:
-            SSEAlgorithm: AES256
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: CheaperS3StorageIntelligentTieringBecauseCachedOnCloudfront
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 7
+            Transition:
+              StorageClass: INTELLIGENT_TIERING
+              TransitionInDays: 30
 
   ResizedBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -363,14 +391,6 @@ Resources:
               AWS: !Sub
                 - arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${id}
                 - id: !Ref originAccessIdentity
-
-  ForceEncryption:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref resizedBucket
-      PolicyDocument:
-        Version: "2008-10-17"
-        Statement:
           - Sid: DenyUnEncryptedObjectUploads
             Effect: Deny
             Principal: "*"
@@ -466,7 +486,7 @@ Resources:
             PathPattern: 'pics/resized/*'
             Compress: true
             MinTTL: 0
-            DefaultTTL: 31536000
+            DefaultTTL: 86400
             MaxTTL: 31536000
             ForwardedValues:
               QueryString: false
@@ -477,7 +497,7 @@ Resources:
             PathPattern: 'pics/original/*'
             Compress: true
             MinTTL: 0
-            DefaultTTL: 31536000
+            DefaultTTL: 86400
             MaxTTL: 31536000
             ForwardedValues:
               QueryString: false
@@ -520,3 +540,9 @@ Resources:
           AcmCertificateArn: !If [ createSSLCert, !Ref SSLCert, !Ref sslCertificateArn ]
           SslSupportMethod: 'sni-only'
           MinimumProtocolVersion: 'TLSv1.1_2016'
+        # Restrictions:
+        #   GeoRestriction:
+        #     RestrictionType: 'whitelist'
+        #     Locations: 
+        #       - 'US'
+            
