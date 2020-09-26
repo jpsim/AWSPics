@@ -132,6 +132,8 @@ It should contain the following info - minus the comments:
   // note that the cookies are session cookies, and will get deleted when the
   // browser is closed anyway
   "sessionDuration=86400",
+  // Google Analytics
+  "googleanalytics=",
   // KMS key ID created in step 2
   "kmsKeyId=00000000-0000-0000-0000-000000000000",
   // CloudFront key pair ID from step 3
@@ -183,6 +185,39 @@ should complete quickly, so that the rest of the deployment can proceed.
 
 You will want to update the frequency of the Cloudwatch Events Rule from its default setting at 365 days to something more appropriate to your needs. You can adjust this pre-deployment
 in the app.yml file or after the fact in the AWS Management console.
+
+## Passwordless Site
+
+Now featuring passwordless access for your site!!
+
+The default `error.html` file will be replaced by `error_public.html`. You could use you're own custom `404 error` page or get one from [codepen.io](codepen.io).
+
+You only need to complete steps 1, 7 & 8 under the [Instructions](#Instructions) section.
+
+Example `config.json` showing parameters available to the passwordless site. Please see [Deployment](#Deployment) for description of these parameters.
+
+```js
+[
+  "website=website.com",
+  "websiteTitle=My awesome public photo gallery",
+  "webBucket=html-files-here",
+  "sourceBucket=original-images-here",
+  "resizedBucket=resized-images-here",
+  "originAccessIdentity=EJG...",
+  "sessionDuration=86400",
+  "googleanalytics=",
+  "ImageMagickLayer=arn:aws:lambda:us-east-1:........:layer:image-magick:...",
+  "sslCertificateArn=arn:aws:acm:us-east-1..."
+]
+```
+
+You can then deploy the full stack using:
+
+```bash
+# name of an S3 bucket for storing the Lambda code
+# bucket will be created if it doesn't already exist
+./deploy_public <unique_bucket_name_here>
+```
 
 ### Note on ImageMagick Layer for Lambda
 When Amazon deprecated Node.js 8.10, they removed ImageMagick from the Amazon Linux 2 AMIs that are required to run Node.js 10.x. Again, ImageMagick is no longer bundled with the Node.js 10.x runtime. This fix may also help with running on Node.js 12.x in the future. This provides a Lambda Layer (essentially a library) for your Lambda function that makes the existing code work with Node.js 10.x. 
@@ -302,6 +337,7 @@ This project is mostly a compilation from multiple existing projects out there.
 * [Restrict S3 to only Cloudfront](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html)
 * [Lambda with S3 tutorial](https://docs.aws.amazon.com/lambda/latest/dg/with-s3-example.html)
 * [Generating Cloudfront Key Pair](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-trusted-signers.html)
+* [Space 404 template](https://github.com/reginaldoledes/page404)
 
 Credits for update to nodejs 10.x and ImageMagick Layer:
 * [NPM Mime Package Update v2](https://www.npmjs.com/package/mime)

@@ -1,0 +1,48 @@
+#!/bin/bash -e
+
+if [ -z "$1" ]; then
+  echo "Usage:"
+  echo "  deploy my.bucket.name"
+  echo "The bucket will be used to store the Lambda code when deploying."
+  echo "It will be created if needed"
+  exit 1
+else
+  s3Bucket=$1
+fi
+
+output_template_file=$(mktemp)
+stackName="AWSPics"
+
+for function in resize site-builder; do
+  (
+    cd $function
+    if [ "${function}" = 'site-builder' ] && [ -f 'homepage/error_public.html' ]; then
+      mv homepage/error_public.html homepage/error.html
+    fi
+    docker build -t "cloudformation-lambda-$function" .
+    docker run "cloudformation-lambda-$function" > ../dist/lambda-$function.zip
+  )
+done
+
+# create the target S3 bucket if needed
+if ! aws s3 ls "s3://${s3Bucket}" > /dev/null
+then
+  aws s3 mb "s3://${s3Bucket}"
+fi
+
+# create and upload the CloudFormation package
+aws cloudformation package \
+    --template-file app_public.yml \
+    --output-template-file "${output_template_file}" \
+    --s3-bucket "${s3Bucket}"
+
+# deploy it
+aws cloudformation deploy \
+    --template-file "${output_template_file}" \
+    --stack-name ${stackName} \
+    --capabilities CAPABILITY_IAM \
+    --parameter-overrides file://dist/config.json || true
+
+# Invoke SiteBuilder function
+funcName="$(aws cloudformation describe-stack-resource --stack-name ${stackName} --logical-resource-id SiteBuilderFunction | sed -n 's/.*"PhysicalResourceId": "\(.*\)",/\1/p')"
+aws lambda invoke --function-name ${funcName} "$(mktemp)"

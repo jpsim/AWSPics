@@ -1,0 +1,136 @@
+/*
+* @author Reginaldo ledes
+* @version 0.1
+*
+*/
+
+/* ========== layout ========== */
+html, body {
+  height: 100%;
+  overflow: auto;
+}
+
+body {
+  background: url('../img/bg.png') no-repeat center center;
+  background-attachment: fixed;
+  background-size: cover;
+  font-family: 'Open Sans', sans-serif;
+}
+
+.text-cover {
+  text-align: center;
+  display: block;
+  vertical-align: middle;
+  padding-top: 20%;
+}
+.carousel-inner>.item>a>img, .carousel-inner>.item>img, .img-responsive, .thumbnail a>img, .thumbnail>img {
+  display: inline;
+  width: 500px;
+}
+/* ---- Tipografia -----*/
+h1  {
+  font-size: 41px;
+  font-weight: 300;
+  color: white;
+  padding-top: 50px;
+  padding-bottom: 60px;
+}
+/* ---- Bottom ---- */
+.colorLoop {
+  background-color: #e2623f;
+  font-size: 31px;
+  color: white;
+  font-weight: 400;
+  padding: 20px 100px;
+  border-radius: 50px;
+  transition: 1s;
+}
+.colorLoop:hover {
+  background-color: #06283c;
+  font-size: 31px;
+  color: #e2623f;
+  font-weight: 400;
+}
+
+
+
+/* Small devices (landscape phones, 576px and up) */
+@media (max-width: 576px)
+{
+  .text-cover {
+    text-align: center;
+    display: block;
+    vertical-align: middle;
+    padding-top: 25%;
+  }
+  .carousel-inner>.item>a>img, .carousel-inner>.item>img, .img-responsive, .thumbnail a>img, .thumbnail>img {
+    display: inline;
+    width: 450px;
+  }
+  /* ---- Tipografia -----*/
+  h1  {
+    font-size: 31px;
+    font-weight: 300;
+    color: white;
+    padding-top: 50px;
+    padding-bottom: 60px;
+  }
+  /* ---- Bottom ---- */
+  .colorLoop {
+    background-color: #e2623f;
+    font-size: 18px;
+    color: white;
+    font-weight: 400;
+    padding: 20px 100px;
+    border-radius: 50px;
+    transition: 1s;
+  }
+  .colorLoop:hover {
+    background-color: #06283c;
+    font-size: 18px;
+    color: #e2623f;
+    font-weight: 400;
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px)
+{
+  .text-cover {
+    text-align: center;
+    display: block;
+    vertical-align: middle;
+    padding-top: 30%;
+  }
+  .carousel-inner>.item>a>img, .carousel-inner>.item>img, .img-responsive, .thumbnail a>img, .thumbnail>img {
+    display: inline;
+    width: 550px;
+  }
+  /* ---- Bottom ---- */
+  .colorLoop {
+    background-color: #e2623f;
+    font-size: 27px;
+    color: white;
+    font-weight: 400;
+    padding: 20px 100px;
+    border-radius: 50px;
+    transition: 1s;
+  }
+  .colorLoop:hover {
+    background-color: #06283c;
+    font-size: 27px;
+    color: #e2623f;
+    font-weight: 400;
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px)
+{
+  .text-cover {
+    text-align: center;
+    display: block;
+    vertical-align: middle;
+    padding-top: 22%;
+  }
+}
