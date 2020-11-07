@@ -1,0 +1,20 @@
+{
+  "name": "AWSPics",
+  "dependencies": {
+    "async": "^2.1.4",
+    "js-yaml": "^3.8.4",
+    "mime": "^2.0.5"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1",
+    "mock-require": "^3.0.3",
+    "nyc": "^15.1.0",
+    "rewire": "^4.0.1",
+    "sinon": "^9.2.0",
+    "sinon-chai": "^3.5.0"
+  },
+  "scripts": {
+    "test": "nyc mocha --recursive"
+  }
+}
