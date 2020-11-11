@@ -4,6 +4,7 @@
   gallery
 
 **Demo:** <https://awspics.net>
+
 **Credentials:** "username" / "password"
 
 ![](assets/awspics.gif)
