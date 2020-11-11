@@ -48,8 +48,40 @@ Parameters:
   googleanalytics:
     Description: Google tracking id (gtag)
     Type: String
+  picsOriginalPath:
+    Description: Path prefix to original albums and pictures
+    Type: String
+    Default: ''
+  albumSort:
+    Description: Album sort order (asc or desc, or blank)
+    Type: String
+    Default: ''
+  pictureSort:
+    Description: Picture sort order (asc or desc, or blank)
+    Type: String
+    Default: ''
+  collectionSort:
+    Description: Collection sort order (asc or desc, or blank)
+    Type: String
+    Default: ''
+  groupAlbumsIntoCollections:
+    Description: Group first by collections then by albums (true or blank)
+    Type: String
+    Default: ''
+  spacesInsteadOfTabs:
+    Description: Indent HTML output with spaces instead of tabs (true or blank)
+    Type: String
+    Default: ''
+  homePageCreditsOverride:
+    Description: Show this HTML instead of the default credits link on the home page
+    Type: String
+    Default: ''
+  hideHomePageCredits:
+    Description: His te default credits link on the home page (true or blank)
+    Type: String
+    Default: ''
   ImageMagickLayer:
-    Description: layer for nodejs10.x and nodejs12.x for imagemagick here https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer 
+    Description: layer for nodejs10.x and nodejs12.x for imagemagick here https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer
     Type: String
   LambdaRate:
     Description: The rate (frequency) that determines when CloudWatch Events runs the rule that triggers the SiteBuilderFunction.
@@ -135,6 +167,7 @@ Resources:
       Environment:
         Variables:
           RESIZED_BUCKET: !Ref resizedBucket
+          PICS_ORIGINAL_PATH: !Ref picsOriginalPath
       Timeout: 30
       MemorySize: 1024
 
@@ -185,7 +218,7 @@ Resources:
       Targets:
         - Arn: !Sub ${SiteBuilderFunction.Arn}
           Id: LambdaSchedule
-  #        
+  #
   # Permission to invoke a lambda function with the CloudWatch Event
   #
   LambdaSchedulePermission:
@@ -223,6 +256,14 @@ Resources:
           SITE_BUCKET: !Ref webBucket
           WEBSITE: !Ref website
           GOOGLEANALYTICS: !Ref googleanalytics
+          PICS_ORIGINAL_PATH: !Ref picsOriginalPath
+          ALBUM_SORT: !Ref albumSort
+          PICTURE_SORT: !Ref pictureSort
+          COLLECTION_SORT: !Ref collectionSort
+          GROUP_ALBUMS_INTO_COLLECTIONS: !Ref groupAlbumsIntoCollections
+          SPACES_INSTEAD_OF_TABS: !Ref spacesInsteadOfTabs
+          HOME_PAGE_CREDITS_OVERRIDE: !Ref homePageCreditsOverride
+          HIDE_HOME_PAGE_CREDITS: !Ref hideHomePageCredits
       Role: !GetAtt SiteBuilderLambdaRole.Arn
       Timeout: 900
       MemorySize: 3008
@@ -306,8 +347,8 @@ Resources:
         BlockPublicPolicy     : true
         IgnorePublicAcls      : true
         RestrictPublicBuckets : true
-      BucketEncryption: 
-        ServerSideEncryptionConfiguration: 
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
       LifecycleConfiguration:
@@ -361,8 +402,8 @@ Resources:
         BlockPublicPolicy     : true
         IgnorePublicAcls      : true
         RestrictPublicBuckets : true
-      BucketEncryption: 
-        ServerSideEncryptionConfiguration: 
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
       LifecycleConfiguration:
@@ -543,6 +584,5 @@ Resources:
         # Restrictions:
         #   GeoRestriction:
         #     RestrictionType: 'whitelist'
-        #     Locations: 
+        #     Locations:
         #       - 'US'
-            

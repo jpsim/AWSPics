@@ -29,6 +29,6 @@ for (( albumIndex = 0; albumIndex < numberOfAlbums; albumIndex++ )); do
       curl -sL https://source.unsplash.com/random -o "$pic"
     done
     prevMD5+=("$(md5sum "$pic" | awk '{print $1}')")
-    aws s3 cp "$pic" "s3://$sourceBucket/pics/original/Album $albumNumber/0$picIndex.jpg" >> /dev/null 2>&1
+    aws s3 cp "$pic" "s3://$sourceBucket/pics/original/Album $albumNumber/0$picIndex.jpg" --sse >> /dev/null 2>&1
   done
 done

@@ -4,6 +4,18 @@ var AWS = require("aws-sdk");
 var im = require("gm").subClass({imageMagick: true});
 var s3 = new AWS.S3({signatureVersion: 'v4'});
 
+
+const DEFAULT_PICS_ORIGINAL_PATH = 'pics/original/';
+
+
+function getPicsOriginalPath() {
+  if (process.env.PICS_ORIGINAL_PATH) {
+    return process.env.PICS_ORIGINAL_PATH;
+  }
+
+  return DEFAULT_PICS_ORIGINAL_PATH;
+}
+
 function getImageType(objectContentType) {
   if (objectContentType === "image/jpeg") {
     return "jpeg";
@@ -64,7 +76,10 @@ exports.handler = function(event, context) {
           } else {
             s3.putObject({
               "Bucket": process.env.RESIZED_BUCKET,
-              "Key": "pics/resized/" + config + "/" + image.originalKey.replace("pics/original/", ""),
+              "Key": (
+                "pics/resized/" + config + "/" +
+                image.originalKey.replace(getPicsOriginalPath(), "")
+              ),
               "Body": buffer,
               "ServerSideEncryption": "AES256",
               "ContentType": image.contentType
