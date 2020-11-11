@@ -1,0 +1,38 @@
+#!/bin/bash -e
+
+if [ -z "$1" ]; then
+  echo "Usage:"
+  echo "  generate_random_collections <number of collections>"
+  echo "Removes all bucket contents, downloads 6 pictures for each album from unsplash.com, creates 6 albums for each collection, giving each collection and each album a random name, uploads them to the original bucket."
+  exit 1
+else
+  webBucket="$(sed -n 's/  "webBucket=\(.*\)"\,/\1/p' dist/config.json)"
+  sourceBucket="$(sed -n 's/  "sourceBucket=\(.*\)"\,/\1/p' dist/config.json)"
+  resizedBucket="$(sed -n 's/  "resizedBucket=\(.*\)"\,/\1/p' dist/config.json)"
+  numberOfCollections=$1
+fi
+
+echo "Removing all files in web, source & resized buckets"
+for bucket in "$webBucket" "$sourceBucket" "$resizedBucket"; do
+  aws s3 rm --recursive "s3://$bucket" >> /dev/null 2>&1 || true
+done
+
+prevMD5=()
+for (( collectionIndex = 0; collectionIndex < numberOfCollections; collectionIndex++ )); do
+  collectionNumber=$RANDOM
+  let "collectionNumber %= 1000"
+  for (( albumIndex = 0; albumIndex < 6; albumIndex++ )); do
+    albumNumber=$RANDOM
+    let "albumNumber %= 1000"
+    for (( picIndex = 0; picIndex < 6; picIndex++ )); do
+      echo "Downloading pic $picIndex for collection $collectionIndex -> album $albumIndex"
+      pic="$(mktemp).jpg"
+      curl -sL https://source.unsplash.com/random -o "$pic"
+      while [[ " ${prevMD5[@]} " =~ " $(md5sum "$pic" | awk '{print $1}') " ]]; do
+        curl -sL https://source.unsplash.com/random -o "$pic"
+      done
+      prevMD5+=("$(md5sum "$pic" | awk '{print $1}')")
+      aws s3 cp "$pic" "s3://$sourceBucket/pics/original/Collection $collectionNumber/Album $albumNumber/0$picIndex.jpg" --sse >> /dev/null 2>&1
+    done
+  done
+done

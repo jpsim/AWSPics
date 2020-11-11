@@ -7,10 +7,9 @@ const sinonChai = require('sinon-chai');
 chai.use(sinonChai);
 const expect = chai.expect;
 
-describe('siteBuilder invalidateCloudFront', function() {
+describe('cloudfrontUtils', function() {
   let createInvalidationFake;
-  let siteBuilder;
-  let invalidateCloudFront;
+  let cloudfrontUtils;
 
   before(function() {
     createInvalidationFake = sinon.fake();
@@ -31,9 +30,7 @@ describe('siteBuilder invalidateCloudFront', function() {
       S3: function() {}
     });
 
-    siteBuilder = rewire('../../site-builder/index');
-
-    invalidateCloudFront = siteBuilder.__get__('invalidateCloudFront');
+    cloudfrontUtils = rewire('../../site-builder/lib/cloudfrontUtils');
 
     process.env.CLOUDFRONT_DISTRIBUTION_DOMAIN = 'johnnyphotos.com';
   });
@@ -45,7 +42,7 @@ describe('siteBuilder invalidateCloudFront', function() {
       return 12345;
     };
 
-    invalidateCloudFront();
+    cloudfrontUtils.invalidateCloudFront();
 
     expect(createInvalidationFake).to.have.callCount(1);
 
