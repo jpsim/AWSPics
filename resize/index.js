@@ -9,11 +9,7 @@ const DEFAULT_PICS_ORIGINAL_PATH = 'pics/original/';
 
 
 function getPicsOriginalPath() {
-  if (process.env.PICS_ORIGINAL_PATH) {
-    return process.env.PICS_ORIGINAL_PATH;
-  }
-
-  return DEFAULT_PICS_ORIGINAL_PATH;
+  return process.env.PICS_ORIGINAL_PATH || DEFAULT_PICS_ORIGINAL_PATH;
 }
 
 function getImageType(objectContentType) {
