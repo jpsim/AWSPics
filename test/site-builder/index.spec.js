@@ -21,8 +21,6 @@ describe('index', function() {
           listObjectsV2: function(params, cb) {
             if (params.ContinuationToken) {
               cb(null, {Contents: [
-                {Key: 'originaljohnny/bananasinbahamas/bananas.jpg', LastModified: 20180808080000},
-                {Key: 'originaljohnny/bananasinbahamas/bahamas.jpg', LastModified: 20180808030000},
                 {Key: 'originaljohnny/carrotsincuba/carrots.jpg', LastModified: 20180808050000},
                 {Key: 'originaljohnny/carrotsincuba/cuba.jpg', LastModified: 20180808020000},
                 {Key: 'originaljohnny/carrotsincuba/havana.jpg', LastModified: 20180808090000}
@@ -30,7 +28,10 @@ describe('index', function() {
             }
             else {
               cb(null, {
-                Contents: [],
+                Contents: [
+                  {Key: 'originaljohnny/bananasinbahamas/bananas.jpg', LastModified: 20180808080000},
+                  {Key: 'originaljohnny/bananasinbahamas/bahamas.jpg', LastModified: 20180808030000}
+                ],
                 IsTruncated: true,
                 NextContinuationToken: 999
               });
