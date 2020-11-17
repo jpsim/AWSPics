@@ -16,7 +16,7 @@ const uploadAllContents = exports.uploadAllContents = function(allContents) {
   }
 };
 
-function handleTruncatedListObjectsResponse(params, token) {
+function handleTruncatedListObjectsResponse(params, token, allContents) {
   const newParams = {};
   Object.assign(newParams, params);
 
@@ -28,13 +28,15 @@ function handleTruncatedListObjectsResponse(params, token) {
   // Rate limiting for reads - this is a tested safe value
   setTimeout(
     function() {
-      listAndUploadAllContents(newParams);
+      listAndUploadAllContents(newParams, allContents);
     },
     2000
   );
 }
 
-const listAndUploadAllContents = exports.listAndUploadAllContents = function(params) {
+const listAndUploadAllContents = exports.listAndUploadAllContents = function(
+  params, allContents
+) {
   // List all bucket objects
   s3.listObjectsV2(params, function (err, data) {
     /* istanbul ignore if */
@@ -42,15 +44,20 @@ const listAndUploadAllContents = exports.listAndUploadAllContents = function(par
       console.log(err, err.stack); // an error occurred
     }
     else {
-      const allContents = [],
-            contents = data.Contents;
+      const contents = data.Contents;
+
+      if (allContents == null) {
+        allContents = [];
+      }
 
       contents.forEach(function (content) {
         allContents.push(content);
       });
 
       if (data.IsTruncated) {
-        handleTruncatedListObjectsResponse(params, data.NextContinuationToken);
+        handleTruncatedListObjectsResponse(
+          params, data.NextContinuationToken, allContents
+        );
       }
       else {
         uploadAllContents(allContents);
