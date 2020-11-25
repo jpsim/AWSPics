@@ -93,8 +93,8 @@ describe('index', function() {
             '</head>\n' +
             '<body>\n' +
             '<h1>{title}</h1>\n' +
-            '<p>{comment1}</p>\n' +
-            '<p>{comment2}</p>\n' +
+            '{comment1}\n' +
+            '{comment2}\n' +
             '{pictures}\n' +
             '</body>\n' +
             '</html>\n'
@@ -278,9 +278,7 @@ describe('index', function() {
         '<title>carrotsincuba</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>carrotsincuba</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>carrotsincuba</h1>\n\n\n' +
         picture3Markup +
         picture4Markup +
         picture5Markup + "\n" +

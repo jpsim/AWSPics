@@ -54,7 +54,9 @@ function unflattenAlbumMetadataForCollections(
   return albumMetadata;
 }
 
-function uploadCollectionPage(collectionName, title, albums, pictures, metadata) {
+function uploadCollectionPage(
+  collectionName, title, comment1, comment2, albums, pictures, metadata
+) {
   const dir = 'homepage';
   console.log("Writing collection " + collectionName);
 
@@ -68,14 +70,25 @@ function uploadCollectionPage(collectionName, title, albums, pictures, metadata)
     const ga = fs.readFileSync('shared/snippets/ga.html').toString();
 
     const albumMarkup = fs.readFileSync('homepage/snippets/album.html').toString();
-    const backTo = fs.readFileSync('homepage/snippets/backto.html').toString();
+    const nav = fs.readFileSync('homepage/snippets/nav.html').toString();
+    const footer = fs.readFileSync('homepage/snippets/footer.html').toString();
 
     async.map(files, function(f, cb) {
       const filePath = path.relative(dir, f);
       if (filePath.includes('index.html')) {
         const data = fs.readFileSync(f);
         const body = homePage.getHomePageBody(
-          data, albums, pictures, metadata, albumMarkup, ga, backTo, title
+          data,
+          albums,
+          pictures,
+          metadata,
+          albumMarkup,
+          ga,
+          nav,
+          footer,
+          title,
+          comment1,
+          comment2
         );
 
         const options = {
@@ -117,9 +130,21 @@ function uploadCollection(
   const collTitle = (metadataForColl && metadataForColl.title) ?
     metadataForColl.title :
     collection;
+  const collComment1 = (metadataForColl && metadataForColl.comment1) ?
+    metadataForColl.comment1 :
+    null;
+  const collComment2 = (metadataForColl && metadataForColl.comment2) ?
+    metadataForColl.comment2 :
+    null;
 
   uploadCollectionPage(
-    collection, collTitle, collAlbums, collPictures, metadataForAlbums
+    collection,
+    collTitle,
+    collComment1,
+    collComment2,
+    collAlbums,
+    collPictures,
+    metadataForAlbums
   );
 
   let newAlbumIndex = albumIndex;
