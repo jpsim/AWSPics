@@ -10,6 +10,7 @@ const expect = chai.expect;
 describe('albumPage', function() {
   describe('uploadAlbumPage', function() {
     let putObjectFake;
+    let delayBlockFake;
     let albumPage;
 
     before(function() {
@@ -64,8 +65,9 @@ describe('albumPage', function() {
         }
       });
 
+      delayBlockFake = sinon.fake();
       mock('../../site-builder/lib/delayUtils', {
-        delayBlock: function() {}
+        delayBlock: delayBlockFake
       });
 
       albumPage = rewire('../../site-builder/lib/albumPage');
@@ -142,6 +144,8 @@ describe('albumPage', function() {
         ContentType: 'text/html',
         Key: 'summerinsicily/index.html'
       });
+
+      expect(delayBlockFake.called).to.be.false;
     });
 
     it('omits google analytics markup if no tracking code configured', function() {
@@ -156,7 +160,10 @@ describe('albumPage', function() {
           'summerinsicily/taormina.jpg',
           'summerinsicily/agrigento.jpg'
         ],
-        {someIgnoredMetadata: 123}
+        {someIgnoredMetadata: 123},
+        null,
+        null,
+        500
       );
 
       const picture1Markup = (
@@ -192,6 +199,9 @@ describe('albumPage', function() {
       );
 
       expect(putObjectFake).to.have.callCount(2);
+      expect(console.log).to.have.been.calledWith(
+        "Written 500 albums, forcing a short delay before continuing"
+      );
       expect(console.log)
         .to.have.been.calledWith('Writing album null');
 
@@ -208,6 +218,8 @@ describe('albumPage', function() {
         ContentType: 'text/html',
         Key: 'null/index.html'
       });
+
+      expect(delayBlockFake.called).to.be.true;
 
       process.env.GOOGLEANALYTICS = 'googleanalyticsfunkycode';
       delete process.env.SPACES_INSTEAD_OF_TABS;
