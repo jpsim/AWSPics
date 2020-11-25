@@ -103,7 +103,7 @@ function uploadCollection(
   collPictures,
   metadataForColl,
   metadataForAlbums,
-  isFirstAlbum
+  albumIndex
 ) {
   console.log(
     "First album in " + collection + ": " +
@@ -122,7 +122,7 @@ function uploadCollection(
     collection, collTitle, collAlbums, collPictures, metadataForAlbums
   );
 
-  let newIsFirstAlbum = isFirstAlbum;
+  let newAlbumIndex = albumIndex;
 
   // Upload album pages
   for (let i = collAlbums.length - 1; i >= 0; i--) {
@@ -132,13 +132,13 @@ function uploadCollection(
       metadataForAlbums[i],
       collection + '/index.html',
       collTitle,
-      newIsFirstAlbum
+      newAlbumIndex
     );
 
-    if (newIsFirstAlbum) {
-      newIsFirstAlbum = false;
-    }
+    newAlbumIndex += 1
   }
+
+  return newAlbumIndex;
 }
 
 function uploadCollections(
@@ -158,20 +158,18 @@ function uploadCollections(
     collMetadata
   );
 
-  let isFirstAlbum = true;
+  let albumIndex = 0;
 
   // Upload collection pages
   for (let i = collections.length - 1; i >= 0; i--) {
-    uploadCollection(
+    albumIndex = uploadCollection(
       collections[i],
       albumsByCollAndPictures.albumsByCollection[i].albums,
       albumsByCollAndPictures.pictures[i],
       collMetadata[i],
       albumMetadata[i],
-      isFirstAlbum
+      albumIndex
     );
-
-    isFirstAlbum = false;
   }
 
   // Invalidate CloudFront

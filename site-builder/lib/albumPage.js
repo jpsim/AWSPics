@@ -14,6 +14,8 @@ const miscUtils = require('./miscUtils');
 const pathUtils = require('./pathUtils');
 
 
+const DELAY_AFTER_THIS_MANY_ALBUMS = 100;
+
 const s3 = new AWS.S3({signatureVersion: 'v4'});
 
 
@@ -91,20 +93,27 @@ function getAlbumPageBody(
 }
 
 const uploadAlbumPage = exports.uploadAlbumPage = function(
-  albumName, pictures, metadata, parentLink, parentTitle, isFirstAlbum
+  albumName, pictures, metadata, parentLink, parentTitle, albumIndex
 ) {
+  // This delay block is inserted to prevent S3 from being flooded and killing
+  // the sitebuild.
+  // This happens when there are enough albums, that it saturates the 3500
+  // writes/sec current rate limit for S3, and this function doesn't handle
+  // those rejections well & hangs without some delay block to force a rate
+  // limit.
+  // Delaying after each chunk of 100 albums should be enough.
+  if (!!albumIndex && albumIndex % DELAY_AFTER_THIS_MANY_ALBUMS === 0) {
+    console.log(
+      "Written " + albumIndex + " albums, " +
+      "forcing a short delay before continuing"
+    );
+    delayUtils.delayBlock();
+  }
+
   const title = (albumName && albumName.includes('/')) ?
     pathUtils.secondLevelFolderName(albumName) :
     albumName;
   console.log("Writing album " + title);
-
-  // This delay block is inserted to prevent S3 from being flooded and killing
-  // the sitebuild.
-  // This happens when you have more than 115 albums, writing about 30 files per
-  // album saturates the 3500 writes/sec current rate limit for S3, and this
-  // function doesn't handle those rejections well & hangs without some delay
-  // block to force a rate limit.
-  delayUtils.delayBlock();
 
   const dir = 'album';
 
@@ -124,7 +133,7 @@ const uploadAlbumPage = exports.uploadAlbumPage = function(
 
       if (
         !filePath.includes('snippets') &&
-        (!filePath.includes('assets/') || isFirstAlbum)
+        (!filePath.includes('assets/') || !albumIndex)
       ) {
         let data = fs.readFileSync(f),
             body;
@@ -181,7 +190,7 @@ function uploadAlbums(albumsAndPictures, metadata) {
     metadata
   );
 
-  let isFirstAlbum = true;
+  let albumIndex = 0;
 
   // Upload album pages
   for (let i = albumsAndPictures.albums.length - 1; i >= 0; i--) {
@@ -191,12 +200,10 @@ function uploadAlbums(albumsAndPictures, metadata) {
       metadata[i],
       null,
       null,
-      isFirstAlbum
+      albumIndex
     );
 
-    if (isFirstAlbum) {
-      isFirstAlbum = false;
-    }
+    albumIndex += 1;
   }
 
   // Invalidate CloudFront
