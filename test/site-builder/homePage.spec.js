@@ -12,6 +12,39 @@ describe('homePage', function() {
     let putObjectFake;
     let homePage;
 
+    const indexMarkup = (
+      '<html>\n' +
+      '  <head>\n' +
+      '{googletracking}\n' +
+      '    <title>{title}</title>\n' +
+      '  </head>\n' +
+      '  <body>\n' +
+      '    <h1>{title}</h1>\n' +
+      '{nav}\n' +
+      '{pictures}\n' +
+      '  </body>\n' +
+      '</html>\n'
+    );
+
+    const albumMarkup = (
+      '    <article>\n' +
+      '      <a href="/{albumName}/index.html">\n' +
+      '        <img src="/pics/resized/1200x750/{albumPicture}" />\n' +
+      '      </a>\n' +
+      '      <h2>{albumTitle}</h2>\n' +
+      '    </article>\n'
+    );
+
+    const gaMarkup = "    <script>gtag('config', '{gtag}');</script>\n";
+
+    const navMarkup = '{navLink}\n';
+
+    const footerMarkup = (
+      '<footer>\n' +
+      '{footerContent}\n' +
+      '</footer>\n'
+    );
+
     before(function() {
       putObjectFake = sinon.fake();
       mock('aws-sdk', {
@@ -21,19 +54,7 @@ describe('homePage', function() {
 
       mock('fs', {readFileSync: function(f) {
         if (f.includes('index.html')) {
-          return (
-            '<html>\n' +
-            '  <head>\n' +
-            '{googletracking}\n' +
-            '    <title>{title}</title>\n' +
-            '  </head>\n' +
-            '  <body>\n' +
-            '    <h1>{title}</h1>\n' +
-            '{backTo}\n' +
-            '{pictures}\n' +
-            '  </body>\n' +
-            '</html>\n'
-          );
+          return indexMarkup;
         }
         else if (f.includes('error.html')) {
           return (
@@ -50,20 +71,13 @@ describe('homePage', function() {
           );
         }
         else if (f.includes('album.html')) {
-          return (
-            '    <article>\n' +
-            '      <a href="/{albumName}/index.html">\n' +
-            '        <img src="/pics/resized/1200x750/{albumPicture}" />\n' +
-            '      </a>\n' +
-            '      <h2>{albumTitle}</h2>\n' +
-            '    </article>\n'
-          );
+          return albumMarkup;
         }
         else if (f.includes('ga.html')) {
-          return "    <script>gtag('config', '{gtag}');</script>\n";
+          return gaMarkup;
         }
-        else if (f.includes('backto.html')) {
-          return '{backLink}\n';
+        else if (f.includes('nav.html')) {
+          return navMarkup;
         }
         else {
           return 'lotsatext';
@@ -85,6 +99,75 @@ describe('homePage', function() {
       process.env.SITE_BUCKET = 'johnnyphotos';
       process.env.WEBSITE = "johnnyphotos.com";
       process.env.WEBSITE_TITLE = "Johnny's Awesome Photos";
+    });
+
+    it('gets home page body', function() {
+      sinon.resetHistory();
+
+      body = homePage.getHomePageBody(
+        indexMarkup,
+        [
+          'california2020',
+          'bluemtns2020',
+          'queenstown2020'
+        ],
+        [
+          [
+            'california2020/disneyland.jpg',
+            'california2020/napa.jpg'
+          ],
+          [
+            'bluemtns2020/threesisters.png',
+            'bluemtns2020/blackheath.jpg',
+            'bluemtns2020/jenolancaves.jpg'
+          ],
+          ['queenstown2020/rafting.jpg']
+        ],
+        [
+          {title: 'California 2020'},
+          {cover_image: 'blackheath.jpg'}
+        ],
+        albumMarkup,
+        gaMarkup,
+        navMarkup,
+        footerMarkup,
+        'Woo hoo',
+        null,
+        null
+      );
+
+      const expectedIndexBody = (
+        '<html>\n' +
+        '\t<head>\n' +
+        "\t\t<script>gtag('config', 'googleanalyticsfunkycode');</script>\n\n" +
+        '\t\t<title>Woo hoo</title>\n' +
+        '\t</head>\n' +
+        '\t<body>\n' +
+        '\t\t<h1>Woo hoo</h1>\n' +
+        '<a href="/">Back to Johnny\'s Awesome Photos</a>\n\n' +
+        '\t\t<article>\n' +
+        '\t\t\t<a href="/california2020/index.html">\n' +
+        '\t\t\t\t<img src="/pics/resized/1200x750/california2020/disneyland.jpg" />\n' +
+        '\t\t\t</a>\n' +
+        '\t\t\t<h2>California 2020</h2>\n' +
+        '\t\t</article>\n' +
+        '\t\t<article>\n' +
+        '\t\t\t<a href="/bluemtns2020/index.html">\n' +
+        '\t\t\t\t<img src="/pics/resized/1200x750/bluemtns2020/blackheath.jpg" />\n' +
+        '\t\t\t</a>\n' +
+        '\t\t\t<h2>bluemtns2020</h2>\n' +
+        '\t\t</article>\n' +
+        '\t\t<article>\n' +
+        '\t\t\t<a href="/queenstown2020/index.html">\n' +
+        '\t\t\t\t<img src="/pics/resized/1200x750/queenstown2020/rafting.jpg" />\n' +
+        '\t\t\t</a>\n' +
+        '\t\t\t<h2>queenstown2020</h2>\n' +
+        '\t\t</article>\n\n' +
+        '\t</body>\n' +
+        '</html>\n'
+      );
+
+      expect(body).to.equal(expectedIndexBody);
     });
 
     it('uploads homepage files to s3', function() {

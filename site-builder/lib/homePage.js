@@ -32,7 +32,17 @@ function getErrorPageBody(data, ga) {
 }
 
 const getHomePageBody = exports.getHomePageBody = function(
-  data, albums, pictures, metadata, albumMarkup, ga, backTo, title
+  data,
+  albums,
+  pictures,
+  metadata,
+  albumMarkup,
+  ga,
+  nav,
+  footer,
+  title,
+  comment1,
+  comment2
 ) {
   let picturesHTML = '';
   const albumsPicturesMetadata = albums.map(function(album, i) {
@@ -55,35 +65,64 @@ const getHomePageBody = exports.getHomePageBody = function(
   }
 
   const pageTitle = title ? title : process.env.WEBSITE_TITLE;
-  let backToMarkup;
+  let navMarkup, footerMarkup;
 
   if (title) {
-    backToMarkup = backTo.replace(
-      /\{backLink\}/g,
-      '<a href="/">Back to ' + process.env.WEBSITE_TITLE + '</a>'
-    );
+    if (comment1 || comment2) {
+      navMarkup = nav.replace(
+        /\{navLink\}/g,
+        '<a href="#footer" class="icon solid fa-info-circle"></a>'
+      );
+    }
+    else {
+      navMarkup = nav.replace(
+        /\{navLink\}/g,
+        '<a href="/">Back to ' + process.env.WEBSITE_TITLE + '</a>'
+      );
+    }
   }
   else if (process.env.HOME_PAGE_CREDITS_OVERRIDE) {
-    backToMarkup = backTo.replace(
-      /\{backLink\}/g,
+    navMarkup = nav.replace(
+      /\{navLink\}/g,
       process.env.HOME_PAGE_CREDITS_OVERRIDE
     );
   }
   else if (!process.env.HIDE_HOME_PAGE_CREDITS) {
-    backToMarkup = backTo.replace(
-      /\{backLink\}/g,
+    navMarkup = nav.replace(
+      /\{navLink\}/g,
       '<a href="https://html5up.net">Design: HTML5 UP</a>'
     );
   }
   else {
-    backToMarkup = '';
+    navMarkup = '';
+  }
+
+  if (comment1 || comment2) {
+    let footerContent = '';
+
+    if (comment1) {
+      footerContent += '<p>' + comment1 + '</p>\n';
+    }
+    if (comment2) {
+      footerContent += '<p>' + comment2 + '</p>\n';
+    }
+
+    footerContent += (
+      '<p><a href="/">Back to ' + process.env.WEBSITE_TITLE + '</a></p>\n'
+    );
+
+    footerMarkup = footer.replace(/\{footerContent\}/g, footerContent);
+  }
+  else {
+    footerMarkup = '';
   }
 
   let body = data
     .toString()
     .replace(/\{title\}/g, pageTitle)
     .replace(/\{pictures\}/g, picturesHTML)
-    .replace(/\{backTo\}/g, backToMarkup);
+    .replace(/\{nav\}/g, navMarkup)
+    .replace(/\{footer\}/g, footerMarkup);
 
   // Test if "googleanalytics" is set or not
   if (!miscUtils.isEmpty(process.env.GOOGLEANALYTICS)) {
@@ -114,7 +153,7 @@ exports.uploadHomePage = function(albums, pictures, metadata) {
     const ga = fs.readFileSync('shared/snippets/ga.html').toString();
 
     const albumMarkup = fs.readFileSync('homepage/snippets/album.html').toString();
-    const backTo = fs.readFileSync('homepage/snippets/backto.html').toString();
+    const nav = fs.readFileSync('homepage/snippets/nav.html').toString();
 
     async.map(files, function(f, cb) {
       if (!f.includes('snippets')) {
@@ -125,7 +164,17 @@ exports.uploadHomePage = function(albums, pictures, metadata) {
           body = getErrorPageBody(data, ga);
         } else if (path.basename(f) === 'index.html') {
           body = getHomePageBody(
-            data, albums, pictures, metadata, albumMarkup, ga, backTo, null
+            data,
+            albums,
+            pictures,
+            metadata,
+            albumMarkup,
+            ga,
+            nav,
+            null,
+            null,
+            null,
+            null
           );
         }
         else {

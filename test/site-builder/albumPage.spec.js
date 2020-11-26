@@ -30,8 +30,8 @@ describe('albumPage', function() {
             '  </head>\n' +
             '  <body>\n' +
             '    <h1>{title}</h1>\n' +
-            '    <p>{comment1}</p>\n' +
-            '    <p>{comment2}</p>\n' +
+            '{comment1}\n' +
+            '{comment2}\n' +
             '{pictures}\n' +
             '  </body>\n' +
             '</html>\n'
@@ -119,8 +119,8 @@ describe('albumPage', function() {
         '\t</head>\n' +
         '\t<body>\n' +
         '\t\t<h1>Summer in Sicily</h1>\n' +
-        '\t\t<p>With my cat</p>\n' +
-        '\t\t<p>And my llama</p>\n' +
+        '<p>With my cat</p>\n' +
+        '<p>And my llama</p>\n' +
         picture1Markup +
         picture2Markup + "\n" +
         '\t</body>\n' +
@@ -189,9 +189,7 @@ describe('albumPage', function() {
         '    <title>null</title>\n' +
         '  </head>\n' +
         '  <body>\n' +
-        '    <h1>null</h1>\n' +
-        '    <p></p>\n' +
-        '    <p></p>\n' +
+        '    <h1>null</h1>\n\n\n' +
         picture1Markup +
         picture2Markup + "\n" +
         '  </body>\n' +

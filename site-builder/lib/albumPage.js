@@ -33,10 +33,10 @@ function getAlbumPageBody(
       renderedTitle = metadata.title;
     }
     if (metadata.comment1) {
-      comment1 = metadata.comment1;
+      comment1 = '<p>' + metadata.comment1 + '</p>';
     }
     if (metadata.comment2) {
-      comment2 = metadata.comment2;
+      comment2 = '<p>' + metadata.comment2 + '</p>';
     }
   }
 

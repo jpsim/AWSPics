@@ -28,8 +28,16 @@ describe('uploadContents', function() {
             else if (key === 'pics/original/whitewinter/metadata.yml') {
               cb(null, {Body: (
                 'title: White Winter\n' +
+                'comment1: Oh it was so white\n' +
+                'comment2: So very whitey white\n' +
                 'cover_image: soggysundays/rainy.jpg\n'
               )});
+            }
+            else if (key === 'pics/original/artyautumn/metadata.yml') {
+              cb(null, {Body: 'comment2: All the leaves are brown\n'});
+            }
+            else if (key === 'pics/original/moo/metadata.yml') {
+              cb(null, {Body: 'comment1: Said the cow\n'});
             }
             else {
               cb(true, null);
@@ -49,8 +57,9 @@ describe('uploadContents', function() {
             '</head>\n' +
             '<body>\n' +
             '<h1>{title}</h1>\n' +
-            '{backTo}\n' +
+            '{nav}\n' +
             '{pictures}\n' +
+            '{footer}\n' +
             '</body>\n' +
             '</html>\n'
           );
@@ -78,8 +87,8 @@ describe('uploadContents', function() {
             '</head>\n' +
             '<body>\n' +
             '<h1>{title}</h1>\n' +
-            '<p>{comment1}</p>\n' +
-            '<p>{comment2}</p>\n' +
+            '{comment1}\n' +
+            '{comment2}\n' +
             '{pictures}\n' +
             '</body>\n' +
             '</html>\n'
@@ -105,8 +114,15 @@ describe('uploadContents', function() {
             '    </article>\n'
           );
         }
-        else if (f.includes('backto.html')) {
-          return '{backLink}\n';
+        else if (f.includes('nav.html')) {
+          return '{navLink}\n';
+        }
+        else if (f.includes('footer.html')) {
+          return (
+            '<footer>\n' +
+            '{footerContent}\n' +
+            '</footer>\n'
+          );
         }
         else if (f.includes('main.css')) {
           return 'cssgoeshere';
@@ -192,6 +208,8 @@ describe('uploadContents', function() {
         {Key: 'pics/original/artyautumn/terrifictrees/oak.jpg'},
         {Key: 'pics/original/artyautumn/terrifictrees/birch.jpg'},
         {Key: 'pics/original/artyautumn/boisterousbirds/galah.jpg'},
+        {Key: 'pics/original/moo/metadata.yml'},
+        {Key: 'pics/original/moo/boo/zoo.jpg'}
       ];
 
       uploadContents.uploadAllContents(allContents);
@@ -212,6 +230,14 @@ describe('uploadContents', function() {
         "\t\t\t<h2>artyautumn</h2>\n" +
         "\t\t</article>\n"
       );
+      const coll3Markup = (
+        "\t\t<article>\n" +
+        "\t\t\t<a href=\"/moo/index.html\">\n" +
+        "\t\t\t\t<img src=\"/pics/resized/1200x750/moo/boo/zoo.jpg\" />\n" +
+        "\t\t\t</a>\n" +
+        "\t\t\t<h2>moo</h2>\n" +
+        "\t\t</article>\n"
+      );
 
       const expectedIndexBody = (
         '<html>\n' +
@@ -222,7 +248,8 @@ describe('uploadContents', function() {
         "<h1>Johnny's Awesome Photos</h1>\n" +
         '<a href="https://html5up.net">Design: HTML5 UP</a>\n\n' +
         coll1Markup +
-        coll2Markup + "\n" +
+        coll2Markup +
+        coll3Markup + "\n\n" +
         '</body>\n' +
         '</html>\n'
       );
@@ -263,9 +290,13 @@ describe('uploadContents', function() {
         '</head>\n' +
         '<body>\n' +
         "<h1>artyautumn</h1>\n" +
-        '<a href="/">Back to Johnny\'s Awesome Photos</a>\n\n' +
+        '<a href="#footer" class="icon solid fa-info-circle"></a>\n\n' +
         coll1album1Markup +
         coll1album2Markup + "\n" +
+        "<footer>\n" +
+        "<p>All the leaves are brown</p>\n" +
+        '<p><a href="/">Back to Johnny\'s Awesome Photos</a></p>\n\n' +
+        "</footer>\n\n" +
         '</body>\n' +
         '</html>\n'
       );
@@ -285,9 +316,7 @@ describe('uploadContents', function() {
         '<title>boisterousbirds</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>boisterousbirds</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>boisterousbirds</h1>\n\n\n' +
         picture1Markup + "\n" +
         '</body>\n' +
         '</html>\n'
@@ -316,9 +345,7 @@ describe('uploadContents', function() {
         '<title>terrifictrees</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>terrifictrees</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>terrifictrees</h1>\n\n\n' +
         picture2Markup +
         picture3Markup + "\n" +
         '</body>\n' +
@@ -349,9 +376,14 @@ describe('uploadContents', function() {
         '</head>\n' +
         '<body>\n' +
         "<h1>White Winter</h1>\n" +
-        '<a href="/">Back to Johnny\'s Awesome Photos</a>\n\n' +
+        '<a href="#footer" class="icon solid fa-info-circle"></a>\n\n' +
         coll2album1Markup +
         coll2album2Markup + "\n" +
+        "<footer>\n" +
+        "<p>Oh it was so white</p>\n" +
+        "<p>So very whitey white</p>\n" +
+        '<p><a href="/">Back to Johnny\'s Awesome Photos</a></p>\n\n' +
+        "</footer>\n\n" +
         '</body>\n' +
         '</html>\n'
       );
@@ -387,9 +419,7 @@ describe('uploadContents', function() {
         '<title>Soggy Sundays</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>Soggy Sundays</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>Soggy Sundays</h1>\n\n\n' +
         picture4Markup +
         picture5Markup +
         picture6Markup + "\n" +
@@ -420,16 +450,61 @@ describe('uploadContents', function() {
         '<title>muggymondays</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>muggymondays</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>muggymondays</h1>\n\n\n' +
         picture7Markup +
         picture8Markup + "\n" +
         '</body>\n' +
         '</html>\n'
       );
 
-      expect(putObjectFake).to.have.callCount(11);
+      const coll3album1Markup = (
+        "\t\t<article>\n" +
+        "\t\t\t<a href=\"/moo/boo/index.html\">\n" +
+        "\t\t\t\t<img src=\"/pics/resized/1200x750/moo/boo/zoo.jpg\" />\n" +
+        "\t\t\t</a>\n" +
+        "\t\t\t<h2>boo</h2>\n" +
+        "\t\t</article>\n"
+      );
+
+      const expectedColl3Body = (
+        '<html>\n' +
+        '<head>\n\n' +
+        "<title>moo</title>\n" +
+        '</head>\n' +
+        '<body>\n' +
+        "<h1>moo</h1>\n" +
+        '<a href="#footer" class="icon solid fa-info-circle"></a>\n\n' +
+        coll3album1Markup + "\n" +
+        "<footer>\n" +
+        "<p>Said the cow</p>\n" +
+        '<p><a href="/">Back to Johnny\'s Awesome Photos</a></p>\n\n' +
+        "</footer>\n\n" +
+        '</body>\n' +
+        '</html>\n'
+      );
+
+      const picture9Markup = (
+        "\t\t<article>\n" +
+        "\t\t\t<a href=\"/pics/resized/1200x750/moo/boo/zoo.jpg\">\n" +
+        "\t\t\t\t<img src=\"/pics/resized/360x225/moo/boo/zoo.jpg\" />\n" +
+        "\t\t\t</a>\n" +
+        "\t\t\t<p><a href=\"/pics/original/moo/boo/zoo.jpg\">DL</a></p>\n" +
+        "\t\t</article>\n"
+      );
+
+      const expectedColl3Album1Body = (
+        '<html>\n' +
+        '<head>\n\n' +
+        '<title>boo</title>\n' +
+        '</head>\n' +
+        '<body>\n' +
+        '<h1>boo</h1>\n\n\n' +
+        picture9Markup + "\n" +
+        '</body>\n' +
+        '</html>\n'
+      );
+
+      expect(putObjectFake).to.have.callCount(13);
 
       expect(putObjectFake).to.have.been.calledWith({
         Body: expectedIndexBody,
@@ -508,12 +583,34 @@ describe('uploadContents', function() {
         Key: 'whitewinter/muggymondays/index.html'
       });
 
-      expect(console.log).to.have.callCount(12);
+      expect(putObjectFake).to.have.been.calledWith({
+        Body: expectedColl3Body,
+        Bucket: 'johnnyphotos',
+        ContentType: 'text/html',
+        Key: 'moo/index.html'
+      });
+
+      expect(putObjectFake).to.have.been.calledWith({
+        Body: expectedColl3Album1Body,
+        Bucket: 'johnnyphotos',
+        ContentType: 'text/html',
+        Key: 'moo/boo/index.html'
+      });
+
+      expect(console.log).to.have.callCount(16);
 
       expect(console.log)
-        .to.have.been.calledWith('First collection: artyautumn');
+        .to.have.been.calledWith('First collection: moo');
       expect(console.log)
         .to.have.been.calledWith('Last collection: whitewinter');
+      expect(console.log)
+        .to.have.been.calledWith('First album in moo: boo');
+      expect(console.log)
+        .to.have.been.calledWith('Last album in moo: boo');
+      expect(console.log)
+        .to.have.been.calledWith('Writing collection moo');
+      expect(console.log)
+        .to.have.been.calledWith('Writing album boo');
       expect(console.log)
         .to.have.been.calledWith('First album in artyautumn: boisterousbirds');
       expect(console.log)
@@ -598,7 +695,7 @@ describe('uploadContents', function() {
         "<h1>Johnny's Awesome Photos</h1>\n" +
         '<a href="https://html5up.net">Design: HTML5 UP</a>\n\n' +
         coll1Markup +
-        coll2Markup + "\n" +
+        coll2Markup + "\n\n" +
         '</body>\n' +
         '</html>\n'
       );
@@ -639,9 +736,13 @@ describe('uploadContents', function() {
         '</head>\n' +
         '<body>\n' +
         "<h1>artyautumn</h1>\n" +
-        '<a href="/">Back to Johnny\'s Awesome Photos</a>\n\n' +
+        '<a href="#footer" class="icon solid fa-info-circle"></a>\n\n' +
         coll1album1Markup +
         coll1album2Markup + "\n" +
+        "<footer>\n" +
+        "<p>All the leaves are brown</p>\n" +
+        '<p><a href="/">Back to Johnny\'s Awesome Photos</a></p>\n\n' +
+        "</footer>\n\n" +
         '</body>\n' +
         '</html>\n'
       );
@@ -661,9 +762,7 @@ describe('uploadContents', function() {
         '<title>boisterousbirds</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>boisterousbirds</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>boisterousbirds</h1>\n\n\n' +
         picture1Markup + "\n" +
         '</body>\n' +
         '</html>\n'
@@ -692,9 +791,7 @@ describe('uploadContents', function() {
         '<title>terrifictrees</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>terrifictrees</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>terrifictrees</h1>\n\n\n' +
         picture2Markup +
         picture3Markup + "\n" +
         '</body>\n' +
@@ -725,9 +822,14 @@ describe('uploadContents', function() {
         '</head>\n' +
         '<body>\n' +
         "<h1>White Winter</h1>\n" +
-        '<a href="/">Back to Johnny\'s Awesome Photos</a>\n\n' +
+        '<a href="#footer" class="icon solid fa-info-circle"></a>\n\n' +
         coll2album1Markup +
         coll2album2Markup + "\n" +
+        "<footer>\n" +
+        "<p>Oh it was so white</p>\n" +
+        "<p>So very whitey white</p>\n" +
+        '<p><a href="/">Back to Johnny\'s Awesome Photos</a></p>\n\n' +
+        "</footer>\n\n" +
         '</body>\n' +
         '</html>\n'
       );
@@ -763,9 +865,7 @@ describe('uploadContents', function() {
         '<title>Soggy Sundays</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>Soggy Sundays</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>Soggy Sundays</h1>\n\n\n' +
         picture4Markup +
         picture5Markup +
         picture6Markup + "\n" +
@@ -796,9 +896,7 @@ describe('uploadContents', function() {
         '<title>muggymondays</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>muggymondays</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>muggymondays</h1>\n\n\n' +
         picture7Markup +
         picture8Markup + "\n" +
         '</body>\n' +
@@ -977,7 +1075,7 @@ describe('uploadContents', function() {
         "<h1>Johnny's Awesome Photos</h1>\n" +
         '<a href="https://html5up.net">Design: HTML5 UP</a>\n\n' +
         coll1Markup +
-        coll2Markup + "\n" +
+        coll2Markup + "\n\n" +
         '</body>\n' +
         '</html>\n'
       );
@@ -1018,9 +1116,13 @@ describe('uploadContents', function() {
         '</head>\n' +
         '<body>\n' +
         "<h1>artyautumn</h1>\n" +
-        '<a href="/">Back to Johnny\'s Awesome Photos</a>\n\n' +
+        '<a href="#footer" class="icon solid fa-info-circle"></a>\n\n' +
         coll1album1Markup +
         coll1album2Markup + "\n" +
+        "<footer>\n" +
+        "<p>All the leaves are brown</p>\n" +
+        '<p><a href="/">Back to Johnny\'s Awesome Photos</a></p>\n\n' +
+        "</footer>\n\n" +
         '</body>\n' +
         '</html>\n'
       );
@@ -1040,9 +1142,7 @@ describe('uploadContents', function() {
         '<title>boisterousbirds</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>boisterousbirds</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>boisterousbirds</h1>\n\n\n' +
         picture1Markup + "\n" +
         '</body>\n' +
         '</html>\n'
@@ -1071,9 +1171,7 @@ describe('uploadContents', function() {
         '<title>terrifictrees</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>terrifictrees</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>terrifictrees</h1>\n\n\n' +
         picture2Markup +
         picture3Markup + "\n" +
         '</body>\n' +
@@ -1104,9 +1202,14 @@ describe('uploadContents', function() {
         '</head>\n' +
         '<body>\n' +
         "<h1>White Winter</h1>\n" +
-        '<a href="/">Back to Johnny\'s Awesome Photos</a>\n\n' +
+        '<a href="#footer" class="icon solid fa-info-circle"></a>\n\n' +
         coll2album1Markup +
         coll2album2Markup + "\n" +
+        "<footer>\n" +
+        "<p>Oh it was so white</p>\n" +
+        "<p>So very whitey white</p>\n" +
+        '<p><a href="/">Back to Johnny\'s Awesome Photos</a></p>\n\n' +
+        "</footer>\n\n" +
         '</body>\n' +
         '</html>\n'
       );
@@ -1142,9 +1245,7 @@ describe('uploadContents', function() {
         '<title>Soggy Sundays</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>Soggy Sundays</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>Soggy Sundays</h1>\n\n\n' +
         picture4Markup +
         picture5Markup +
         picture6Markup + "\n" +
@@ -1175,9 +1276,7 @@ describe('uploadContents', function() {
         '<title>muggymondays</title>\n' +
         '</head>\n' +
         '<body>\n' +
-        '<h1>muggymondays</h1>\n' +
-        '<p></p>\n' +
-        '<p></p>\n' +
+        '<h1>muggymondays</h1>\n\n\n' +
         picture7Markup +
         picture8Markup + "\n" +
         '</body>\n' +
