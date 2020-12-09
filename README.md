@@ -212,6 +212,12 @@ You can then deploy the full stack using:
 ./deploy <unique_bucket_name_here>
 ```
 
+Or optionally deploy and specify the stack name (otherwise it defaults to AWSPics):
+
+```bash
+./deploy --stack-name=<stack_name_here> <unique_bucket_name_here>
+```
+
 Any subsequent changes that you make to this code can be redeployed with the
 same command. CloudFormation will create a "changeset" to only update the
 modified resources.
