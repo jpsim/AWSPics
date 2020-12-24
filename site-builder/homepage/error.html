@@ -211,13 +211,14 @@
         dataType: "json",
         success: function(data) {
           var cookies = $.map(data, function(c) { return c.split(';')[0]; });
+          var cookies = $.map(data, function(c) { return c.split(';')[0] + '; ' + c.split(';')[1] + '; ' + c.split(';')[2]; });
           for (var i = cookies.length - 1; i >= 0; i--) {
             document.cookie = cookies[i];
           }
           $this.addClass('ok');
           $state.html('Loading Site...');
           setTimeout(function() {
-            window.location.replace("https://{website}");
+            window.location.reload();
           }, 1000);
         },
         error: function(XMLHttpRequest, textStatus, errorThrown) {
