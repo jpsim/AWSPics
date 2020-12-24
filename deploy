@@ -1,17 +1,39 @@
 #!/bin/bash -e
 
+DEFAULT_STACK_NAME="AWSPics"
+stack_name="${DEFAULT_STACK_NAME}"
+
+USAGE=$(cat <<-END
+Usage:
+  deploy my.bucket.name
+The bucket will be used to store the Lambda code when deploying.
+It will be created if needed.
+Optional usage:
+  deploy --stack-name=mystackname my.bucket.name
+Specify stack name, otherwise it defaults to ${DEFAULT_STACK_NAME}
+END
+)
+
+while [ $# -gt 1 ]; do
+  case "$1" in
+    --stack-name=*)
+      stack_name="${1#*=}"
+      ;;
+    *)
+      echo "${USAGE}"
+      exit 1
+  esac
+  shift
+done
+
 if [ -z "$1" ]; then
-  echo "Usage:"
-  echo "  deploy my.bucket.name"
-  echo "The bucket will be used to store the Lambda code when deploying."
-  echo "It will be created if needed"
+  echo "${USAGE}"
   exit 1
 else
-  s3Bucket=$1
+  s3_bucket=$1
 fi
 
 output_template_file=$(mktemp)
-stackName="AWSPics"
 
 for function in login resize site-builder; do
   (
@@ -22,24 +44,24 @@ for function in login resize site-builder; do
 done
 
 # create the target S3 bucket if needed
-if ! aws s3 ls "s3://${s3Bucket}" > /dev/null
+if ! aws s3 ls "s3://${s3_bucket}" > /dev/null
 then
-  aws s3 mb "s3://${s3Bucket}"
+  aws s3 mb "s3://${s3_bucket}"
 fi
 
 # create and upload the CloudFormation package
 aws cloudformation package \
     --template-file app.yml \
     --output-template-file "${output_template_file}" \
-    --s3-bucket "${s3Bucket}"
+    --s3-bucket "${s3_bucket}"
 
 # deploy it
 aws cloudformation deploy \
     --template-file "${output_template_file}" \
-    --stack-name ${stackName} \
+    --stack-name ${stack_name} \
     --capabilities CAPABILITY_IAM \
     --parameter-overrides file://dist/config.json || true
 
 # Invoke SiteBuilder function
-funcName="$(aws cloudformation describe-stack-resource --stack-name ${stackName} --logical-resource-id SiteBuilderFunction | sed -n 's/.*"PhysicalResourceId": "\(.*\)",/\1/p')"
-aws lambda invoke --function-name ${funcName} "$(mktemp)"
+func_name="$(aws cloudformation describe-stack-resource --stack-name ${stack_name} --logical-resource-id SiteBuilderFunction | sed -n 's/.*"PhysicalResourceId": "\(.*\)",/\1/p')"
+aws lambda invoke --function-name ${func_name} --invocation-type Event "$(mktemp)"
