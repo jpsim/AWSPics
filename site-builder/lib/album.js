@@ -9,7 +9,7 @@ function getUniqueFirstLevelObjects(objects) {
     .map(pathUtils.firstLevelFolderName)
     // Make unique
     .filter(function(item, pos, self) {
-      return self.indexOf(item) === pos;
+      return item && self.indexOf(item) === pos;
     });
 }
 
@@ -18,7 +18,10 @@ function getUniqueSecondLevelObjects(objects) {
     .map(pathUtils.firstAndSecondLevelFolderName)
     // Make unique
     .filter(function(item, pos, self) {
-      return self.indexOf(item) === pos;
+      return (
+        pathUtils.secondLevelFolderName(item) &&
+        self.indexOf(item) === pos
+      );
     });
 }
 
