@@ -81,7 +81,20 @@ exports.getAlbumMarkup = function(albumName, pictures, metadata, albumMarkup) {
   let albumTitle = (albumName && albumName.includes('/')) ?
     pathUtils.secondLevelFolderName(albumName) :
     albumName;
-  let albumPicture = pictures[0];
+  const picturesSorted = pictures.slice();
+
+  if (process.env.PICTURE_SORT &&
+      process.env.PICTURE_SORT.toLowerCase() === 'asc') {
+    picturesSorted.sort();
+  }
+  else if (
+      process.env.PICTURE_SORT &&
+      process.env.PICTURE_SORT.toLowerCase() === 'desc') {
+    picturesSorted.sort();
+    picturesSorted.reverse();
+  }
+  
+  let albumPicture = picturesSorted[0];
 
   if (metadata) {
     if (metadata.title) {

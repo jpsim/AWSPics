@@ -176,7 +176,7 @@ describe('index', function() {
       const album1Markup = (
         "\t\t<article>\n" +
         "\t\t\t<a href=\"/carrotsincuba/index.html\">\n" +
-        "\t\t\t\t<img src=\"/pics/resized/1200x750/carrotsincuba/havana.jpg\" />\n" +
+        "\t\t\t\t<img src=\"/pics/resized/1200x750/carrotsincuba/carrots.jpg\" />\n" +
         "\t\t\t</a>\n" +
         "\t\t\t<h2>carrotsincuba</h2>\n" +
         "\t\t</article>\n"
@@ -184,7 +184,7 @@ describe('index', function() {
       const album2Markup = (
         "\t\t<article>\n" +
         "\t\t\t<a href=\"/bananasinbahamas/index.html\">\n" +
-        "\t\t\t\t<img src=\"/pics/resized/1200x750/bananasinbahamas/bananas.jpg\" />\n" +
+        "\t\t\t\t<img src=\"/pics/resized/1200x750/bananasinbahamas/bahamas.jpg\" />\n" +
         "\t\t\t</a>\n" +
         "\t\t\t<h2>Bananas in Bahamas</h2>\n" +
         "\t\t</article>\n"
