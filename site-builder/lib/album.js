@@ -93,9 +93,6 @@ exports.getAlbumMarkup = function(albumName, pictures, metadata, albumMarkup) {
     picturesSorted.sort();
     picturesSorted.reverse();
   }
-  else {
-    picturesSorted.reverse();
-  }
   
   let albumPicture = picturesSorted[0];
 
