@@ -63,7 +63,7 @@ A video walkthrough [is available on YouTube](https://youtu.be/010AGcY4uoE).
    <https://console.aws.amazon.com/iam/home?region=us-east-1#/security_credential>.
 4. Encrypt the CloudFront private key:
    ```
-   aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat pk-*.pem)" \
+   aws kms encrypt --key-id $KMS_KEY_ID --plaintext fileb://pk-*.pem \
                    --query CiphertextBlob --output text
    ```
 5. Create a local `htpasswd` file with your usernames and passwords.
@@ -75,7 +75,7 @@ A video walkthrough [is available on YouTube](https://youtu.be/010AGcY4uoE).
    ```
 6. Encrypt your `htpasswd` file using KMS again:
    ```
-   aws kms encrypt --key-id $KMS_KEY_ID --plaintext "$(cat htpasswd)" \
+   aws kms encrypt --key-id $KMS_KEY_ID --plaintext fileb://htpasswd) \
                    --query CiphertextBlob --output text
    ```
 7. Create CloudFront Origin Access Identity, take note of the identity in the
@@ -92,7 +92,7 @@ A video walkthrough [is available on YouTube](https://youtu.be/010AGcY4uoE).
    ```
    <https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer>
    ```
-   Click Deploy (currently the orange button on the upper left).
+   Click Deploy (currently the orange button on the upper right).
 
    Then click on your Lambda - Layers and you will see a version ARN that looks like:
    ```
