@@ -58,7 +58,7 @@ A video walkthrough [is available on YouTube](https://youtu.be/010AGcY4uoE).
    ```
 2. Create KMS encryption key: `aws kms create-key`. Keep note of its `KeyId` in
    the response. Note that each KMS key costs $1/month.
-3. Create CloudFront Key Pair, take note of the key pair ID and download the
+3. Create CloudFront Key Pair (note, you must do this as the root user of your AWS account, not an administrator), take note of the key pair ID and download the
    private key:
    <https://console.aws.amazon.com/iam/home?region=us-east-1#/security_credential>.
 4. Encrypt the CloudFront private key:
@@ -88,18 +88,26 @@ A video walkthrough [is available on YouTube](https://youtu.be/010AGcY4uoE).
 
 8. Create Image Magick Lambda Layer for Amazon Linux 2 AMIs.
 
-   While logged into AWS, go to this link:
+   ~~While logged into AWS, go to this link:
    ```
    <https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer>
    ```
    Click Deploy (currently the orange button on the upper right).
 
-   Then click on your Lambda - Layers and you will see a version ARN that looks like:
+   Then click on your Lambda - Layers and you will see a version ARN that looks like:~~
+
+   The best practice for image magick for the resize function is now is to create your own lambda layer. Download this zip file from here:
+https://github.com/CyprusCodes/imagemagick-aws-lambda-2/tree/master/archive
+Upload it to AWS Lambda as a layer (and select runtime of node.js 20 and architecture arm64) as a runtime, and note the change to arm64 architecture on the image resize function in the app.yml file, because the zip file referenced is actually compiled for arm64 and node.js 20. Use the arn of the lambda layer in your dist/config.json file.
+
    ```
    Name          Version  Version ARN
    image-magick  1        arn:aws:lambda:us-east-1:000000000000:layer:image-magick:1
    ```
    Hold on to that ARN for later.
+
+
+
 
 ## Deployment
 
@@ -230,7 +238,22 @@ You will want to update the frequency of the Cloudwatch Events Rule from its def
 in the app.yml file or after the fact in the AWS Management console.
 
 ### Note on ImageMagick Layer for Lambda
-When Amazon deprecated Node.js 8.10, they removed ImageMagick from the Amazon Linux 2 AMIs that are required to run Node.js 10.x. Again, ImageMagick is no longer bundled with the Node.js 10.x runtime. This fix may also help with running on Node.js 12.x in the future. This provides a Lambda Layer (essentially a library) for your Lambda function that makes the existing code work with Node.js 10.x.
+~~When Amazon deprecated Node.js 8.10, they removed ImageMagick from the Amazon Linux 2 AMIs that are required to run Node.js 10.x. Again, ImageMagick is no longer bundled with the Node.js 10.x runtime. This fix may also help with running on Node.js 12.x in the future. This provides a Lambda Layer (essentially a library) for your Lambda function that makes the existing code work with Node.js 10.x.~~
+
+### Release notes for update December 2023
+The best practice for image magick for the resize function is now is to create your own lambda layer. Download this zip file from here:
+https://github.com/CyprusCodes/imagemagick-aws-lambda-2/tree/master/archive
+
+Upload it to AWS Lambda as a layer (and select runtime of node.js 20 and architecture arm64) as a runtime, and note the change to arm64 architecture on the image resize function in the app.yml file, because the zip file referenced is actually compiled for arm64 and node.js 20. Use the arn of the lambda layer in your dist/config.json file.
+
+htpasswd-auth was outdated and using bcrypt which reached end of life and was failing.
+This was updated to bcrypt 5.0.1+ and node.js 20. Also a minor update to the login function updating the buffer function (Buffer -> Buffer.from in login index.js) for the latest node.js 20.x. 
+
+Note that Amazon removed aws-sdk from the Amazon Linux base image that lambda functions run on, so it was added to the package.json, and it increases the size of each lambda function zip file by 13 MB or so. This could be added as a lambda layer to save space if needed, but this was an easier change to make.
+
+When manually uploading files (e.g. photos) to S3 Buckets for this application, because of the encryption, you want to select the option of an encryption by default.
+
+Also, the site-builder function used to be cloudwatch events, but it has been renamed by AWS. The best way to rerun the site-builder is to just hit the test button from AWS Lambda. That generates the site building on demand. Otherwise the default is to run infrequently, as configured in the app.yml. 
 
 
 ##### Note on SSL Cert
@@ -354,6 +377,10 @@ Credits for update to nodejs 10.x and ImageMagick Layer:
 * [ImageMagick Lambda Layer for Amazon Linux 2 AMIs](https://serverlessrepo.aws.amazon.com/applications/arn:aws:serverlessrepo:us-east-1:145266761615:applications~image-magick-lambda-layer)
 * [image-magick-lambda-layer — version 1.0.0](https://github.com/serverlesspub/imagemagick-aws-lambda-2)
 
+Credits for update to nodejs 20.x and ImageMagick Layer:
+* [zip file for use as nodejs 20.x ImageMagick Lambda Layer](https://github.com/CyprusCodes/imagemagick-aws-lambda-2/tree/master/archive)
+* [Manual update to htpasswd-auth came from this Pull Request](https://github.com/jdx/htpasswd-auth/pull/3)
+* ChatGPT 4 helped identifiy the Buffer.from update that was needed, and a few other issues. Thanks OpenAI!
 
 ## License
 

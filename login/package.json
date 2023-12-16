@@ -1,6 +1,6 @@
 {
   "name": "lambda-cloudfront-cookies",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "AWS Lambda function that creates CloudFront cookies for valid users",
   "author": "thumbsup",
   "license": "MIT",
@@ -9,7 +9,9 @@
     "async": "^2.1.4",
     "aws-cloudfront-sign": "^2.2.0",
     "content-type": "^1.0.2",
-    "htpasswd-auth": "^2.0.0",
-    "querystringparser": "^0.1.1"
+    "htpasswd-auth": "file:/build/htpasswd-auth",
+    "querystringparser": "^0.1.1",
+    "aws-sdk": "^2.1510.0"
   }
 }
+

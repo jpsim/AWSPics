@@ -8,6 +8,7 @@
   "dependencies": {
     "async": "^2.1.4",
     "mime": "^2.0.5",
-    "js-yaml": "^3.8.4"
+    "js-yaml": "^3.8.4",
+    "aws-sdk": "^2.1510.0"
   }
 }

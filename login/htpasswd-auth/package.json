@@ -1,0 +1,28 @@
+{
+  "name": "htpasswd-auth",
+  "version": "2.0.2",
+  "description": "authenticate with htpasswd files",
+  "main": "index.js",
+  "scripts": {
+    "test": "jshint . && mocha"
+  },
+  "keywords": [
+    "htpasswd"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dickeyxxx/htpasswd-auth"
+  },
+  "author": "Jeff Dickey (@dickeyxxx)",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "*",
+    "jshint": "*",
+    "mocha": "*"
+  },
+  "dependencies": {
+    "apache-crypt": "^1.2.5",
+    "apache-md5": "^1.1.7",
+    "bcrypt": "^5.0.1"
+  }
+}
