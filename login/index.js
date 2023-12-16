@@ -87,7 +87,7 @@ function getConfigValue (configName, target, done) {
   if (/^ENCRYPTED/.test(configName)) {
     const kms = new AWS.KMS()
     const encrypted = process.env[configName]
-    kms.decrypt({ CiphertextBlob: new Buffer(encrypted, 'base64') }, (err, data) => {
+    kms.decrypt({ CiphertextBlob: new Buffer.from(encrypted, 'base64') }, (err, data) => {
       if (err) done(err)
       else done(null, data.Plaintext.toString('ascii'))
     })
